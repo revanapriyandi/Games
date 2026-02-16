@@ -37,7 +37,7 @@ export function CardInventory({ player, players, playerId, roomId, isTurn }: Car
         setTimeout(() => clearCardEffect(roomId), 2500);
     };
 
-    const selectedCard = usingCardIndex !== null ? cards[usingCardIndex] ?? null : null;
+    const selectedCard = usingCardIndex !== null ? cards[usingCardIndex] : null;
 
     return (
         <>
