@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ular-tangga-seru.vercel.app/sitemap.xml
