@@ -99,7 +99,6 @@ export function playSnakeSound() {
     wobble.stop(now + 1.3);
 }
 
-/** Dice roll click sound */
 /** Dice roll click sound (shorter, crisper, more natural) */
 export function playDiceRollSound() {
     const ctx = getAudioContext();
@@ -150,8 +149,6 @@ export function playDiceResultSound() {
     osc2.start(now);
     osc2.stop(now + 1.0);
 }
-
-// ... existing code ...
 
 /** Winner Fanfare: Trumpet-like cheerful melody */
 export function playWinSound() {
@@ -316,7 +313,7 @@ export function playCardUseSound() {
 // Ambient Background Music
 // ============================
 
-let ambientInterval: number | undefined | null = null;
+let ambientInterval: ReturnType<typeof setInterval> | null = null;
 let isMuted = false;
 
 /** 
