@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { type GameState, subscribeToRoom, startGame, rollDice, markChallengeComplete, failChallenge, kickPlayer, resetGame, SNAKES_LADDERS, dismissTreasure, playCard, clearCardEffect } from "../lib/game";
+import { type GameState, subscribeToRoom, startGame, rollDice, markChallengeComplete, failChallenge, kickPlayer, resetGame, SNAKES_LADDERS, dismissTreasure } from "../lib/game";
 import { Button } from "./ui/button";
 import { Board } from "./Board";
 import { Dice } from "./Dice";
@@ -10,7 +10,10 @@ import TreasureModal from "./TreasureModal";
 import { motion, AnimatePresence } from "framer-motion";
 // import { useGameAnnouncer } from "../hooks/useGameAnnouncer"; // Removed
 import { getAvatarImage } from "./KnightAvatar";
-import { playLadderSound, playSnakeSound, playStepSound, playDiceResultSound, playTreasureSound, playCardUseSound } from "../lib/sounds";
+import { playLadderSound, playSnakeSound, playStepSound, playDiceResultSound, playTreasureSound } from "../lib/sounds";
+import { CardInventory } from "./game-room/CardInventory";
+import { GameRoomWaiting } from "./game-room/GameRoomWaiting";
+import { PlayerTabs } from "./game-room/PlayerTabs";
 
 interface GameRoomProps {
     roomId: string;
@@ -28,7 +31,6 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const [thinkingPlayerId, setThinkingPlayerId] = useState<string | null>(null);
     const [showPortal, setShowPortal] = useState(false);
     const [activePortalCell, setActivePortalCell] = useState<number | null>(null);
-    const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
     const [portalInfo, setPortalInfo] = useState<{
         type: 'ladder' | 'snake';
         fromCell: number;
@@ -42,8 +44,6 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const prevPositionsRef = useRef<Record<string, number>>({});
     const prevPlayerIdsRef = useRef<string[]>([]);
     const animTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
-    const [showCardInventory, setShowCardInventory] = useState(false);
 
     const [copied, setCopied] = useState(false);
     const handleCopy = () => {
@@ -336,71 +336,19 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     if (gameState.status === "waiting") {
         return (
-            <motion.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }}
-                className="max-w-md w-full mx-auto p-8 bg-white/10 backdrop-blur-md rounded-xl text-center shadow-2xl border border-white/20"
-            >
-                <h2 className="text-2xl font-bold text-white mb-2">
-                    Kode Ruang: <span onClick={handleCopy} className="text-yellow-400 tracking-wider font-mono bg-black/40 px-2 rounded-md border border-yellow-500/50 cursor-pointer hover:bg-white/20 transition-all select-none" title="Klik untuk menyalin">{copied ? "DISALIN!" : roomId}</span>
-                </h2>
-                <p className="text-gray-300 mb-2 font-light">Bagikan kode ini ke temanmu!</p>
-                <p className="text-gray-400 mb-6 text-xs">📱 Max 4 pemain. Buka game di HP lain dan masukkan kode ini.</p>
-
-                <div className="space-y-3 mb-8 text-left">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest border-b border-white/10 pb-1">Ksatria ({playersList.length}/4)</h3>
-                    {playersList.map((p, idx) => (
-                        <motion.div 
-                            initial={{ x: -20, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            key={p.id} 
-                            className="flex items-center gap-3 bg-black/40 p-3 rounded-lg border border-white/5"
-                        >
-                            <img src={getAvatarImage(p.avatar, idx)} alt={p.name} className="w-10 h-10 object-contain" />
-                            <span className="text-white font-medium">{p.name} {p.id === playerId && <span className="text-gray-400 text-xs font-normal">(Kamu)</span>}</span>
-                            
-                            {/* Host Badge */}
-                            {p.isHost && <span className="ml-auto text-[10px] uppercase font-bold bg-yellow-500 text-black px-2 py-1 rounded shadow-lg">HOST</span>}
-                            
-                            {/* Kick Button (only for Host, not on self) */}
-                            {isHost && p.id !== playerId && (
-                                <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm(`Keluarkan ${p.name}?`)) kickPlayer(roomId, p.id);
-                                    }}
-                                    className="ml-auto px-3 py-1 bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white text-xs font-bold rounded-lg shadow-lg border border-red-400/30 flex items-center gap-1 transition-all active:scale-95 group"
-                                    title="Keluarkan Pemain"
-                                >
-                                    <span className="group-hover:scale-110 transition-transform">⛔</span> 
-                                </button>
-                            )}
-                        </motion.div>
-                    ))}
-                </div>
-
-                {isHost ? (
-                    <Button 
-                        onClick={() => startGame(roomId)}
-                        className="w-full bg-gradient-to-r from-green-500 to-emerald-700 hover:from-green-600 hover:to-emerald-800 text-white font-bold py-6 text-xl shadow-xl transition-all hover:scale-[1.02]"
-                    >
-                        ⚔️ MULAI PERMAINAN
-                    </Button>
-                ) : (
-                    <div className="flex items-center justify-center gap-2 text-sm text-gray-400 animate-pulse bg-white/5 py-3 rounded-lg">
-                        <span className="w-2 h-2 bg-yellow-500 rounded-full"/>
-                        Menunggu host memulai permainan...
-                </div>
-                )}
-                
-                <Button 
-                    variant="ghost" 
-                    onClick={onLeave}
-                    className="w-full mt-3 text-red-400 hover:text-red-300 hover:bg-red-900/20 text-xs uppercase tracking-wider"
-                >
-                    Keluar Room
-                </Button>
-            </motion.div>
+            <GameRoomWaiting
+                roomId={roomId}
+                playerId={playerId}
+                players={playersList}
+                isHost={!!isHost}
+                copied={copied}
+                onCopyCode={handleCopy}
+                onStartGame={() => startGame(roomId)}
+                onLeave={onLeave}
+                onKickPlayer={(kickPlayerId, playerName) => {
+                    if (confirm(`Keluarkan ${playerName}?`)) kickPlayer(roomId, kickPlayerId);
+                }}
+            />
         );
     }
 
@@ -427,54 +375,11 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
             )}
             
             {/* Player tabs - small avatars peeking from top edge */}
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 z-40 flex gap-1">
-                {playersList.map((p, index) => {
-                    const isActive = gameState.currentTurnIndex === index;
-                    const isSelected = selectedPlayer === p.id;
-                    return (
-                        <div key={p.id} className="relative">
-                            <motion.div
-                                onClick={() => setSelectedPlayer(isSelected ? null : p.id)}
-                                animate={isActive ? { y: [0, -2, 0] } : {}}
-                                transition={isActive ? { duration: 1.5, repeat: Infinity } : {}}
-                                className={`cursor-pointer px-2 pt-1 pb-1.5 rounded-b-xl transition-all ${
-                                    isActive 
-                                        ? 'bg-gradient-to-b from-yellow-600/80 to-yellow-900/80 border border-t-0 border-yellow-400 shadow-[0_4px_15px_rgba(234,179,8,0.4)]' 
-                                        : 'bg-black/60 border border-t-0 border-white/10 opacity-70 hover:opacity-100'
-                                }`}
-                            >
-                                <img src={getAvatarImage(p.avatar, index)} alt={p.name} className="w-7 h-7 object-contain drop-shadow-lg" />
-                            </motion.div>
-
-                            {/* Detail popup */}
-                            <AnimatePresence>
-                                {isSelected && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10, scale: 0.9 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                                        className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-3 min-w-[120px] shadow-2xl z-50"
-                                    >
-                                        <div className="flex flex-col items-center gap-1.5">
-                                            <img src={getAvatarImage(p.avatar, index)} alt={p.name} className="w-12 h-12 object-contain" />
-                                            <span className="text-xs text-white font-bold">{p.name}</span>
-                                            {gameState.aiConfig?.heroTitles?.[index] && (
-                                                <span className="text-[9px] text-purple-300 italic">"{gameState.aiConfig.heroTitles[index]}"</span>
-                                            )}
-                                            <span className="text-[10px] text-yellow-300 font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
-                                                Petak #{p.position || 1}
-                                            </span>
-                                            {isActive && (
-                                                <span className="text-[9px] text-green-400 font-bold animate-pulse">🎯 GILIRAN</span>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    );
-                })}
-            </div>
+            <PlayerTabs
+                players={playersList}
+                currentTurnIndex={gameState.currentTurnIndex}
+                heroTitles={gameState.aiConfig?.heroTitles}
+            />
 
             <div className="flex-1 w-full flex items-center justify-center pb-32 pt-16 min-h-[500px]">
                 <Board 
@@ -505,110 +410,13 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 />
             </motion.div>
 
-            {/* Card Inventory - floating panel */}
-            {player && (player.cards?.length ?? 0) > 0 && (
-                <div className="fixed left-2 bottom-4 z-50">
-                    <button
-                        onClick={() => setShowCardInventory(!showCardInventory)}
-                        className="px-3 py-2 bg-purple-600/80 hover:bg-purple-500/80 text-white text-xs font-bold rounded-xl border border-purple-400/30 shadow-lg backdrop-blur-sm transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                        🎴 {player.cards?.length || 0} Kartu
-                    </button>
-                    <AnimatePresence>
-                        {showCardInventory && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                                className="absolute bottom-12 left-0 bg-slate-900/95 border border-purple-500/30 rounded-xl p-2 shadow-2xl backdrop-blur-md min-w-[180px] max-w-[220px]"
-                            >
-                                <div className="text-[10px] text-purple-300 font-bold mb-1.5 px-1">KARTU KAMU:</div>
-                                <div className="flex flex-col gap-1 max-h-[200px] overflow-y-auto">
-                                    {player.cards?.map((card: import('../lib/types').TreasureCard, idx: number) => (
-                                        <button
-                                            key={idx}
-                                            onClick={() => {
-                                                if (card.targetType === 'self') {
-                                                    playCardUseSound();
-                                                    playCard(roomId, playerId, idx);
-                                                    setShowCardInventory(false);
-                                                    setTimeout(() => clearCardEffect(roomId), 2500);
-                                                } else {
-                                                    setUsingCardIndex(idx);
-                                                    setShowCardInventory(false);
-                                                }
-                                            }}
-                                            disabled={!isTurn}
-                                            className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all cursor-pointer ${
-                                                isTurn 
-                                                    ? 'bg-purple-500/20 hover:bg-purple-500/40 border border-purple-500/20'
-                                                    : 'bg-slate-800/50 opacity-50 cursor-not-allowed border border-slate-700/20'
-                                            }`}
-                                        >
-                                            <span className="text-lg">{card.emoji}</span>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-white font-bold leading-tight">{card.name}</span>
-                                                <span className="text-[8px] text-gray-400 leading-tight">{card.description}</span>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            )}
-
-            {/* Target Picker Modal */}
-            <AnimatePresence>
-                {usingCardIndex !== null && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.8 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0.8 }}
-                            className="bg-slate-900/95 border border-purple-500/40 rounded-2xl p-5 max-w-xs w-full shadow-2xl"
-                        >
-                            <h3 className="text-white font-bold text-center mb-1">
-                                {player?.cards?.[usingCardIndex]?.emoji} {player?.cards?.[usingCardIndex]?.name}
-                            </h3>
-                            <p className="text-gray-400 text-xs text-center mb-4">Pilih target pemain:</p>
-                            <div className="flex flex-col gap-2">
-                                {playersList.filter(p => p.id !== playerId).map((p, index) => (
-                                    <button
-                                        key={p.id}
-                                        onClick={() => {
-                                            if (usingCardIndex === null) return;
-                                            playCardUseSound();
-                                            playCard(roomId, playerId, usingCardIndex, p.id);
-                                            setUsingCardIndex(null);
-                                            setTimeout(() => clearCardEffect(roomId), 2500);
-                                        }}
-                                        className="flex items-center gap-3 px-3 py-2 bg-purple-500/20 hover:bg-purple-500/40 border border-purple-500/20 rounded-xl transition-all cursor-pointer"
-                                    >
-                                        <img src={getAvatarImage(p.avatar, index)} alt={p.name} className="w-8 h-8 object-contain" />
-                                        <div className="flex flex-col text-left">
-                                            <span className="text-white text-sm font-bold">{p.name}</span>
-                                            <span className="text-gray-400 text-[10px]">Petak #{p.position || 1}</span>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                            <button
-                                onClick={() => setUsingCardIndex(null)}
-                                className="mt-3 w-full py-2 text-xs text-gray-400 hover:text-white transition-colors cursor-pointer"
-                            >
-                                Batal
-                            </button>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            <CardInventory
+                player={player}
+                players={playersList}
+                playerId={playerId}
+                roomId={roomId}
+                isTurn={isTurn}
+            />
 
             {/* Turn announcement - top toast that appears and fades */}
             <AnimatePresence>
