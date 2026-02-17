@@ -42,7 +42,17 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      leaveVoice();
+      // We cannot call leaveVoice here because it's async and depends on state
+      // Instead, we just cleanup refs.
+      if (localStreamRef.current) {
+         localStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current) {
+         audioContextRef.current.close();
+      }
+      if (animationFrameRef.current) {
+         cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
@@ -96,6 +106,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
 
   const setupAudioAnalysis = (stream: MediaStream, id: string) => {
     if (!audioContextRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
 
@@ -111,7 +122,6 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
     if (!animationFrameRef.current) {
       const checkVolume = () => {
         const speakingState: Record<string, boolean> = {};
-        let hasChanges = false;
 
         Object.entries(analysersRef.current).forEach(([pid, analyser]) => {
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -142,7 +152,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
     }
   };
 
-  const createPeerConnection = (targetId: string, initiator: boolean, stream: MediaStream) => {
+  const createPeerConnection = (targetId: string, _initiator: boolean, stream: MediaStream) => {
     if (peerConnectionsRef.current[targetId]) return peerConnectionsRef.current[targetId];
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -209,6 +219,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
 
             // Iterate over signals from this sender
             // Note: Firebase lists might be objects with push keys
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             for (const [key, signal] of Object.entries(signals as Record<string, any>)) {
                  if (!signal) continue;
 
@@ -262,7 +273,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
       }
 
       // Listen for new participants
-      onValue(participantsRef, (snap) => {
+      onValue(participantsRef, (_snap) => {
           // We only care about new people if we are already joined.
           // The logic above handles existing.
           // Actually, 'child_added' might be better, but onValue is fine if we diff.
