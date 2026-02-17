@@ -309,6 +309,39 @@ export function playCardUseSound() {
 }
 
 
+/** World Event: Deep boom + magical shimmer */
+export function playWorldEventSound() {
+    const ctx = getAudioContext();
+    const now = ctx.currentTime;
+
+    // Deep Boom
+    const boom = ctx.createOscillator();
+    const boomGain = ctx.createGain();
+    boom.type = "triangle";
+    boom.frequency.setValueAtTime(100, now);
+    boom.frequency.exponentialRampToValueAtTime(30, now + 1.5);
+    boomGain.gain.setValueAtTime(0.3, now);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+    boom.connect(boomGain).connect(ctx.destination);
+    boom.start(now);
+    boom.stop(now + 1.6); 
+
+    // Magic Shimmer
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+    notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+        gain.gain.setValueAtTime(0, now + i * 0.05);
+        gain.gain.linearRampToValueAtTime(0.1, now + i * 0.05 + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.8);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.9);
+    });
+}
+
 // ============================
 // Ambient Background Music
 // ============================

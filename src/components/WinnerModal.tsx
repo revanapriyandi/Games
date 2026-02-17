@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { playWinSound, playLoseSound } from "../lib/sounds";
 import type { Player } from "../lib/game";
 import { getAvatarImage } from "./KnightAvatar";
+import confetti from "canvas-confetti";
 
 interface WinnerModalProps {
     winnerId: string;
@@ -21,6 +22,31 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
     useEffect(() => {
         if (isWinner) {
             playWinSound();
+            // Fire confetti
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            const frame = () => {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#FFD700', '#FFA500', '#FF4500']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#FFD700', '#FFA500', '#FF4500']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            };
+            frame();
         } else {
             playLoseSound();
         }

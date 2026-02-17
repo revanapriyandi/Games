@@ -212,6 +212,51 @@ export async function rollDice(roomId: string, playerId: string) {
     }, 2000);
   }
 
+  // Increment global turn count (or init)
+  const turnCount = (gameState.turnCount || 0) + 1;
+  updates[`rooms/${roomId}/turnCount`] = turnCount;
+
+  // Check for World Event (Every 5 turns)
+  if (turnCount % 5 === 0) {
+      const eventTypes = ['earthquake', 'wind', 'fog'];
+      const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      
+      let eventName = "";
+      let eventDesc = "";
+      
+      if (randomEvent === 'earthquake') {
+          eventName = "🌍 GEMPA BUMI!";
+          eventDesc = "Posisi Ular & Tangga bergeser!";
+          updates[`rooms/${roomId}/portals`] = generateRandomPortals();
+      } else if (randomEvent === 'wind') {
+           eventName = "🍃 ANGIN REZEKI!";
+           eventDesc = "Semua pemain mendapatkan 1 Kartu Misterius!";
+           // Give card to everyone
+           Object.keys(gameState.players).forEach(pid => {
+               const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
+               const pCards = gameState.players[pid]?.cards || [];
+               updates[`rooms/${roomId}/players/${pid}/cards`] = [...pCards, randomCard];
+           });
+      } else if (randomEvent === 'fog') {
+          eventName = "🌫️ KABUT TEBAL!";
+          eventDesc = "Penglihatan terganggu...";
+          // Visual only, maybe hide portals in Board.tsx?
+      }
+
+      updates[`rooms/${roomId}/activeWorldEvent`] = {
+          id: `event-${Date.now()}`,
+          name: eventName,
+          description: eventDesc,
+          type: randomEvent,
+          timestamp: Date.now()
+      };
+
+      // Clear event after 5 seconds
+      setTimeout(() => {
+          update(ref(db), { [`rooms/${roomId}/activeWorldEvent`]: null });
+      }, 5000);
+  }
+
   // Player always moves to final position (after portal if any)
   updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
   updates[`rooms/${roomId}/lastRoll`] = roll;

@@ -80,6 +80,14 @@ export interface GameState {
   currentTreasure?: TreasureCard | null;
   activeCardEffect?: ActiveCardEffect | null;
   currentRoleSelection?: string[] | null;
+  turnCount?: number;
+  activeWorldEvent?: {
+      id: string;
+      name: string;
+      description: string;
+      type: 'earthquake' | 'wind' | 'fog';
+      timestamp: number;
+  } | null;
 }
 
 /** Response from Gemini for lobby setup */

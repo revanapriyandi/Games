@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { playCard, clearCardEffect } from "../lib/game";
-import { playCardUseSound } from "../lib/sounds";
+import { playCardUseSound, playWorldEventSound } from "../lib/sounds";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
 import { useVoiceChat } from "../hooks/useVoiceChat";
@@ -23,6 +23,7 @@ interface GameRoomProps {
     onLeave: () => void;
 }
 
+
 export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const {
         gameState,
@@ -42,6 +43,15 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     } = useGameRoom({ roomId, playerId, onLeave });
 
     const { isJoined, isMuted, toggleVoice, toggleMute, speakingPlayers } = useVoiceChat(roomId, playerId);
+
+    const activeEventId = gameState?.activeWorldEvent?.id;
+
+    // Play World Event Sound
+    useEffect(() => {
+        if (activeEventId) {
+             playWorldEventSound();
+        }
+    }, [activeEventId]);
 
     const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
@@ -124,6 +134,22 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 ROOM: <span className="text-white font-bold">{roomId}</span>
             </div>
             
+            {/* World Event Notification */}
+            {gameState.activeWorldEvent && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-full max-w-md px-4">
+                    <div className="bg-black/80 backdrop-blur-md border border-yellow-500/50 rounded-xl p-4 shadow-[0_0_30px_rgba(234,179,8,0.3)] animate-bounce-in">
+                        <div className="text-center">
+                            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-red-400 uppercase tracking-widest drop-shadow-sm">
+                                {gameState.activeWorldEvent.name}
+                            </h3>
+                            <p className="text-white/90 text-sm font-medium mt-1">
+                                {gameState.activeWorldEvent.description}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <PlayerTabs
                 players={playersList}
                 currentTurnIndex={gameState.currentTurnIndex}
