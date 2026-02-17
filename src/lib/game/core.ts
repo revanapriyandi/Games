@@ -22,9 +22,10 @@ export async function createRoom(playerName: string, role: string, customAvatarU
     isHost: true,
     giveUpCount: 0,
     role,
-    customAvatarUrl: customAvatarUrl || undefined,
-    cards: role === 'mage' ? [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]] : undefined,
   };
+
+  if (customAvatarUrl) initialPlayer.customAvatarUrl = customAvatarUrl;
+  if (role === 'mage') initialPlayer.cards = [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]];
 
   const initialGameState: GameState = {
     status: "waiting",
@@ -75,9 +76,10 @@ export async function joinRoom(roomId: string, playerName: string, role: string,
     isHost: false,
     giveUpCount: 0,
     role,
-    customAvatarUrl: customAvatarUrl || undefined,
-    cards: role === 'mage' ? [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]] : undefined,
   };
+
+  if (customAvatarUrl) newPlayer.customAvatarUrl = customAvatarUrl;
+  if (role === 'mage') newPlayer.cards = [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]];
 
   await set(ref(db, `rooms/${roomId}/players/${playerId}`), newPlayer);
   return { roomId, playerId };

@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { ref, update } from "firebase/database";
+import { ref, update, set } from "firebase/database";
 import { CHALLENGE_CELLS, TREASURE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SNAKES_LADDERS } from "../constants";
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
@@ -224,4 +224,14 @@ export async function resetGame(roomId: string) {
   updates[`rooms/${roomId}/portals`] = generateRandomPortals();
 
   await update(ref(db), updates);
+}
+
+export async function sendChatMessage(roomId: string, playerId: string, message: string) {
+  // Set the message
+  await set(ref(db, `rooms/${roomId}/players/${playerId}/chatMessage`), message);
+
+  // Clear it after 5 seconds
+  setTimeout(async () => {
+    await set(ref(db, `rooms/${roomId}/players/${playerId}/chatMessage`), null);
+  }, 5000);
 }

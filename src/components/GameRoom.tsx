@@ -7,6 +7,7 @@ import { GameHeader } from "./game/GameHeader";
 import { GameWaiting } from "./game/GameWaiting";
 import { PlayerTabs } from "./game/PlayerTabs";
 import { GameControls } from "./game/GameControls";
+import { ChatControls } from "./game/ChatControls";
 import { CardInventory } from "./game/CardInventory";
 import { TargetPicker } from "./game/TargetPicker";
 import { TurnAnnouncement } from "./game/TurnAnnouncement";
@@ -104,6 +105,8 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 disabled={disabled}
                 showResult={showResult}
             />
+
+            <ChatControls roomId={roomId} playerId={playerId} />
 
             {player && (
                 <CardInventory

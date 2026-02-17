@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Player, ActiveCardEffect } from "../../lib/types";
 import { getAvatarImage } from "../KnightAvatar";
 import { getCellPosition } from "./utils";
@@ -49,6 +49,21 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     {role.emoji}
                 </div>
             )}
+
+            {/* Chat Message Bubble */}
+            <AnimatePresence>
+                {player.chatMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0, y: 10 }}
+                        className="absolute -top-10 z-50 bg-white text-black text-[10px] md:text-xs px-2 py-1 rounded-lg shadow-lg border border-gray-300 whitespace-nowrap max-w-[150px] overflow-hidden text-ellipsis flex items-center justify-center"
+                    >
+                        {player.chatMessage}
+                        <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-gray-300"></div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Thinking indicator */}
             {thinkingPlayerId === player.id && (
