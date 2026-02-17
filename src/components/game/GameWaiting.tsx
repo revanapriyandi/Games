@@ -33,159 +33,272 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-100 w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
+            className="w-full max-w-5xl mx-auto p-4 md:p-8"
         >
-            {/* Header / Room Code */}
-            <div className="mb-6 relative flex flex-col items-center">
-                <div className="-mt-3 mb-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold tracking-widest uppercase border border-yellow-500/20 rounded-full">
-                    Lobby Area
-                </div>
-                <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">KODE RUANG</h2>
-                <button
-                    onClick={onCopy}
-                    className="group relative inline-flex items-center justify-center gap-3 px-6 py-3 bg-black/50 hover:bg-black/70 rounded-xl border border-white/10 hover:border-white/30 transition-all w-full active:scale-95"
-                    title="Salin Kode"
-                >
-                    <span className="text-3xl font-mono font-bold text-white tracking-widest group-hover:text-yellow-400 transition-colors">
-                        {roomId}
-                    </span>
-                    <div className="absolute right-4 text-white/20 group-hover:text-white/80 transition-colors">
-                        {copied ? <span className="text-green-400 text-[10px] font-bold">DISALIN!</span> : <Copy size={16} />}
-                    </div>
-                </button>
-            </div>
+            <div className="grid lg:grid-cols-12 gap-6 items-start">
 
-            {/* Player List */}
-            <div className="mb-8">
-                <div className="flex items-center justify-between mb-3 px-1">
-                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1">
-                        <User size={12} />
-                        Pemain ({players.length}/4)
-                    </h3>
-                    {players.length < 2 && (
-                        <span className="text-[10px] text-red-400 flex items-center gap-1 animate-pulse">
-                            <AlertTriangle size={10} />
-                            Butuh min. 2
-                        </span>
-                    )}
-                </div>
+                {/* Left Column: Room Info & Players */}
+                <div className="lg:col-span-7 space-y-6">
+                    {/* Room Code Card */}
+                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 transition-opacity group-hover:opacity-100 opacity-50" />
 
-                <div className="space-y-2">
-                    {players.map((p, idx) => (
-                        <motion.div
-                            initial={{ x: -10, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            transition={{ delay: idx * 0.1 }}
-                            key={p.id}
-                            className={`relative flex items-center gap-3 p-2.5 rounded-xl border transition-all ${p.id === playerId
-                                ? "bg-indigo-950/60 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
-                                : "bg-white/5 border-white/5 hover:bg-white/10"
-                                }`}
-                        >
-                            <div className="relative">
-                                <img
-                                    src={p.customAvatarUrl || getAvatarImage(p.avatar, idx)}
-                                    alt={p.name}
-                                    className="w-9 h-9 object-contain drop-shadow-md"
-                                />
-                                {p.isHost && (
-                                    <div className="absolute -top-1 -right-1 text-yellow-500 bg-black rounded-full p-0.5 border border-yellow-500/30 shadow-sm" title="Host">
-                                        <Crown size={10} fill="currentColor" />
-                                    </div>
-                                )}
+                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                                    Room Access Code
+                                </h2>
+                                <p className="text-gray-500 text-xs">Share this code with your friends to join.</p>
                             </div>
 
-                            <div className="flex flex-col items-start flex-1 min-w-0">
-                                <span className={`text-sm font-bold truncate w-full text-left ${p.id === playerId ? "text-indigo-300" : "text-gray-200"}`}>
-                                    {p.name}
+                            <button
+                                onClick={onCopy}
+                                className="relative overflow-hidden flex items-center gap-4 bg-black/40 hover:bg-black/60 border border-white/10 hover:border-indigo-500/30 rounded-xl px-5 py-3 transition-all group/btn active:scale-95 w-full md:w-auto"
+                            >
+                                <span className="text-3xl font-mono font-bold text-white tracking-[0.15em] relative z-10">
+                                    {roomId}
                                 </span>
-                                {p.id === playerId && (
-                                    <span className="text-[9px] text-indigo-400/70 font-medium uppercase tracking-wide">It's You</span>
-                                )}
+                                <div className="h-full w-px bg-white/10 mx-2" />
+                                <div className="text-gray-400 group-hover/btn:text-white transition-colors">
+                                    {copied ? (
+                                        <div className="flex flex-col items-center gap-1 text-emerald-400">
+                                            <span className="text-[10px] font-bold">COPIED</span>
+                                        </div>
+                                    ) : (
+                                        <Copy size={20} />
+                                    )}
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Players List Card */}
+                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl min-h-[300px]">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                <User size={16} className="text-indigo-400" />
+                                Adventurers Party <span className="text-gray-500 text-xs ml-1">({players.length}/4)</span>
+                            </h3>
+                            {players.length < 2 && (
+                                <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-2 text-[10px] text-red-400 font-bold animate-pulse">
+                                    <AlertTriangle size={12} />
+                                    MINIMUM 2 PLAYERS
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {players.map((p, idx) => (
+                                <motion.div
+                                    initial={{ y: 10, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    key={p.id}
+                                    className={`relative flex items-center gap-4 p-3 rounded-xl border transition-all group ${p.id === playerId
+                                            ? "bg-indigo-900/20 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                                            : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                                        }`}
+                                >
+                                    <div className="relative shrink-0">
+                                        <div className={`w-12 h-12 rounded-lg bg-black/40 flex items-center justify-center p-1 border ${p.id === playerId ? 'border-indigo-500/30' : 'border-white/5'}`}>
+                                            <img
+                                                src={p.customAvatarUrl || getAvatarImage(p.avatar, idx)}
+                                                alt={p.name}
+                                                className="w-full h-full object-contain filter drop-shadow-sm transform group-hover:scale-110 transition-transform duration-300"
+                                            />
+                                        </div>
+                                        {p.isHost && (
+                                            <div className="absolute -top-2 -right-2 bg-yellow-500 text-black p-1 rounded-full shadow-lg shadow-yellow-500/20 border border-yellow-300" title="Party Leader">
+                                                <Crown size={10} fill="currentColor" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-col flex-1 min-w-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-sm font-bold truncate ${p.id === playerId ? "text-indigo-300" : "text-gray-200"}`}>
+                                                {p.name}
+                                            </span>
+                                            {p.id === playerId && (
+                                                <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20 font-bold uppercase">You</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            {/* Status Indicators */}
+                                            {hasStakes && (
+                                                <div className={`text-[10px] font-medium flex items-center gap-1 ${stakesAcceptedBy?.includes(p.id) ? "text-green-400" : "text-gray-500"}`}>
+                                                    {stakesAcceptedBy?.includes(p.id) ? (
+                                                        <><span>Ready</span> <ShieldAlert size={10} /></>
+                                                    ) : (
+                                                        <span>Reviewing...</span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Kick Button (Host) */}
+                                    {isHost && p.id !== playerId && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm(`Kick ${p.name}?`)) kickPlayer(roomId, p.id);
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all absolute right-2 bg-black/60 backdrop-blur-sm"
+                                            title="Kick Player"
+                                        >
+                                            <ShieldAlert size={14} />
+                                        </button>
+                                    )}
+                                </motion.div>
+                            ))}
+
+                            {/* Empty Slots */}
+                            {Array.from({ length: Math.max(0, 4 - players.length) }).map((_, i) => (
+                                <div key={`empty-${i}`} className="flex items-center justify-center p-3 h-[74px] rounded-xl border border-white/5 bg-black/20 border-dashed text-white/10 text-xs font-medium group hover:bg-white/[0.02] transition-colors">
+                                    <span className="group-hover:text-white/20 transition-colors">Waiting for hero...</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column: Settings & Actions */}
+                <div className="lg:col-span-5 space-y-6">
+
+                    {/* Game Rules / Settings */}
+                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl space-y-6">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                            <Settings size={14} />
+                            Game Configuration
+                        </h3>
+
+                        {/* Stakes Section */}
+                        <div className="space-y-3 bg-white/[0.03] p-4 rounded-xl border border-white/5">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-yellow-500/90 uppercase tracking-wider flex items-center gap-2">
+                                    <Crown size={12} /> Stakes & Rewards
+                                </label>
+                                {isHost && <span className="text-[9px] text-gray-500">Edit to reset approval</span>}
                             </div>
 
-                            {/* Agreed Status */}
-                            {hasStakes && stakesAcceptedBy?.includes(p.id) && (
-                                <div className="text-green-400" title="Setuju">
-                                    <span className="text-xs">✅</span>
+                            {isHost ? (
+                                <textarea
+                                    value={stakes || ""}
+                                    onChange={(e) => onChangeStakes?.(e.target.value)}
+                                    placeholder="e.g. Loser buys lunch 🍔"
+                                    rows={2}
+                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-yellow-500/50 transition-colors resize-none"
+                                />
+                            ) : (
+                                <div className="text-sm font-medium text-gray-300 italic p-3 bg-black/20 rounded-lg border border-white/5 text-center min-h-[60px] flex items-center justify-center">
+                                    "{stakes || "Just for fun! No stakes set."}"
                                 </div>
                             )}
 
-                            {/* Kick Button (Host only) */}
-                            {isHost && p.id !== playerId && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (confirm(`Keluarkan ${p.name}?`)) kickPlayer(roomId, p.id);
-                                    }}
-                                    className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-900/30 rounded-lg transition-colors"
-                                    title="Keluarkan"
+                            {/* Stake Action Button */}
+                            {hasStakes && (
+                                <Button
+                                    onClick={() => setIsStakesModalOpen(true)}
+                                    size="sm"
+                                    className={`w-full font-bold text-xs uppercase tracking-wide ${!iAccepted
+                                            ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 animate-pulse"
+                                            : "bg-white/5 hover:bg-white/10 text-gray-400 border border-white/5"
+                                        }`}
                                 >
-                                    <ShieldAlert size={14} />
-                                </button>
+                                    {!iAccepted ? "Review & Accept" : "View Stakes"}
+                                </Button>
                             )}
-                        </motion.div>
-                    ))}
-
-                    {/* Empty Slots */}
-                    {Array.from({ length: 4 - players.length }).map((_, i) => (
-                        <div key={`empty-${i}`} className="flex items-center justify-center p-3 rounded-xl border border-white/5 bg-black/20 border-dashed text-white/10 text-xs font-medium">
-                            Menunggu...
                         </div>
-                    ))}
-                </div>
-            </div>
 
-            {/* Stakes Input */}
-            <div className="mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
-                <h3 className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
-                    <Crown size={12} />
-                    Hadiah / Taruhan
-                </h3>
-                {isHost ? (
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={stakes || ""}
-                            onChange={(e) => onChangeStakes?.(e.target.value)}
-                            placeholder="Contoh: Yang kalah traktir kopi ☕"
-                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-center text-white placeholder:text-gray-600 focus:outline-none focus:border-yellow-500/50 transition-colors"
-                        />
-                        <div className="absolute inset-x-0 -bottom-3 text-[9px] text-gray-500">
-                            Jika diubah, persetujuan akan di-reset.
+                        {/* House Rules Section */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between px-1">
+                                <span className="text-[10px] font-bold text-gray-500 uppercase">House Rules</span>
+                            </div>
+
+                            <div className="space-y-2">
+                                {/* Rule Item: Strict Finish */}
+                                <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${rules?.strictFinish ? "bg-blue-500/10 border-blue-500/20" : "bg-black/20 border-white/5"}`}>
+                                    <div className="flex flex-col">
+                                        <span className={`text-xs font-bold ${rules?.strictFinish ? "text-blue-300" : "text-gray-400"}`}>Exact Win Only</span>
+                                        <span className="text-[9px] text-gray-500 leading-tight mt-0.5">Must roll exact number to hit 100</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={!!rules?.strictFinish}
+                                            disabled={!isHost}
+                                            onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), strictFinish: e.target.checked })}
+                                        />
+                                        <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+                                    </label>
+                                </div>
+
+                                {/* Rule Item: Double Snake */}
+                                <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${rules?.doubleSnake ? "bg-red-500/10 border-red-500/20" : "bg-black/20 border-white/5"}`}>
+                                    <div className="flex flex-col">
+                                        <span className={`text-xs font-bold ${rules?.doubleSnake ? "text-red-300" : "text-gray-400"}`}>Double Snake Penalty</span>
+                                        <span className="text-[9px] text-gray-500 leading-tight mt-0.5">Snakes are more dangerous</span>
+                                    </div>
+                                    <label className="relative inline-flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="sr-only peer"
+                                            checked={!!rules?.doubleSnake}
+                                            disabled={!isHost}
+                                            onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), doubleSnake: e.target.checked })}
+                                        />
+                                        <div className="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-red-600 shadow-inner"></div>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                ) : (
-                    <div className="text-sm font-medium text-white italic truncate max-w-62.5 mx-auto">
-                        "{stakes || "Belum ada taruhan..."}"
-                    </div>
-                )}
 
-                {/* Agreement Button */}
-                {hasStakes && (
-                    <div className="mt-4 flex flex-col items-center gap-2">
-                        {!iAccepted ? (
+                    {/* Start Action Panel */}
+                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl space-y-4">
+                        {isHost ? (
                             <Button
-                                onClick={() => setIsStakesModalOpen(true)}
-                                size="sm"
-                                className="bg-green-600 hover:bg-green-500 text-white font-bold animate-pulse shadow-lg shadow-green-900/20"
+                                onClick={() => startGame(roomId)}
+                                disabled={players.length < 2 || !allAccepted}
+                                className={`w-full py-7 text-lg font-bold shadow-xl transition-all rounded-xl relative overflow-hidden ${players.length < 2 || !allAccepted
+                                    ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5"
+                                    : "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white border-t border-white/20 hover:scale-[1.02] active:scale-[0.98]"
+                                    }`}
                             >
-                                👍 TINJAU & SETUJU
+                                {players.length < 2 || !allAccepted ? (
+                                    <span className="flex items-center justify-center gap-2 text-sm uppercase tracking-wider">
+                                        {players.length < 2 ? "Waiting for players..." : "Waiting for agreements..."}
+                                    </span>
+                                ) : (
+                                    <>
+                                        <div className="absolute inset-0 bg-white/20 animate-pulse-slow mix-blend-overlay" />
+                                        <span className="flex items-center justify-center gap-2 relative z-10">
+                                            Start Adventure ⚔️
+                                        </span>
+                                    </>
+                                )}
                             </Button>
                         ) : (
-                            <Button
-                                onClick={() => setIsStakesModalOpen(true)}
-                                size="sm"
-                                className="bg-white/10 hover:bg-white/20 text-gray-300 font-bold border border-white/10"
-                            >
-                                📜 LIHAT TARUHAN
-                            </Button>
+                            <div className="w-full py-6 bg-white/5 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 text-gray-400 animate-pulse">
+                                <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Waiting for Host</span>
+                                <span className="text-[10px]">The party leader will start the game soon</span>
+                            </div>
                         )}
-                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">
-                            {stakesAcceptedBy?.length || 0}/{players.length} Pemain Setuju
+
+                        <div className="flex justify-center">
+                            <button
+                                onClick={onLeave}
+                                className="text-xs font-semibold text-red-400/50 hover:text-red-400 transition-colors uppercase tracking-wider hover:underline"
+                            >
+                                Leave Party
+                            </button>
                         </div>
                     </div>
-                )}
+                </div>
             </div>
 
             {/* Stakes Modal */}
@@ -204,84 +317,6 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     />
                 )}
             </AnimatePresence>
-
-
-
-
-            {/* House Rules Section */}
-            <div className="mb-6 bg-white/5 p-4 rounded-xl border border-white/5 text-left">
-                <h3 className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <Settings size={12} />
-                    Variasi Aturan Game
-                </h3>
-
-                <div className="space-y-2">
-                    {/* Strict Finish Rule */}
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5">
-                        <div>
-                            <div className="text-xs text-white font-bold">Exact Win Only</div>
-                            <div className="text-[9px] text-gray-400">Harus dadu pas untuk finish (100).</div>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only peer"
-                                checked={!!rules?.strictFinish}
-                                disabled={!isHost}
-                                onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), strictFinish: e.target.checked })}
-                            />
-                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                        </label>
-                    </div>
-
-                    {/* Double Snake Rule */} // Temporarily just visual/flag
-                    <div className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5">
-                        <div>
-                            <div className="text-xs text-white font-bold">Double Snake Penalty</div>
-                            <div className="text-[9px] text-gray-400">Turun ular lebih jauh / menyakitkan.</div>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only peer"
-                                checked={!!rules?.doubleSnake}
-                                disabled={!isHost}
-                                onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), doubleSnake: e.target.checked })}
-                            />
-                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            {/* Actions */}
-            <div className="space-y-3">
-                {isHost ? (
-                    <Button
-                        onClick={() => startGame(roomId)}
-                        disabled={players.length < 2 || !allAccepted}
-                        className={`w-full py-6 text-lg font-bold shadow-xl transition-all ${players.length < 2 || !allAccepted
-                            ? "bg-gray-700 text-gray-400 cursor-not-allowed border border-white/5"
-                            : "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border border-indigo-400/30 hover:shadow-indigo-500/20"
-                            }`}
-                    >
-                        {players.length < 2 ? "MENUNGGU PEMAIN..." : !allAccepted ? "MENUNGGU PERSETUJUAN..." : "⚔️ MULAI GAME"}
-                    </Button>
-                ) : (
-                    <div className="w-full py-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center gap-2 text-gray-400 animate-pulse text-xs font-medium uppercase tracking-wider">
-                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                        Menunggu Host...
-                    </div>
-                )}
-
-                <Button
-                    variant="ghost"
-                    onClick={onLeave}
-                    className="w-full h-8 text-xs text-red-400/60 hover:text-red-400 hover:bg-transparent font-medium"
-                >
-                    TINGGALKAN ROOM
-                </Button>
-            </div>
         </motion.div>
     );
 }
