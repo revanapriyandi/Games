@@ -80,6 +80,7 @@ export function GameOverlays({
                             onComplete={handleChallengeComplete}
                             onFail={handleChallengeFail}
                             themeName={gameState.aiConfig?.theme}
+                            giveUpCount={activePlayer?.giveUpCount || 0}
                         />
                     </div>
                 )}

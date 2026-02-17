@@ -1,5 +1,6 @@
 import { Button } from "./ui/button";
 import { motion } from "framer-motion";
+import { MAX_GIVE_UP } from "../lib/constants";
 
 interface ChallengeModalProps {
     isOpen: boolean;
@@ -10,9 +11,10 @@ interface ChallengeModalProps {
     playerName: string;
     themeName?: string;
     onFail?: () => void;
+    giveUpCount?: number;
 }
 
-export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActivePlayer, playerName, themeName, onFail }: ChallengeModalProps) {
+export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActivePlayer, playerName, themeName, onFail, giveUpCount = 0 }: ChallengeModalProps) {
     if (!isOpen) return null;
 
     const formattedTheme = themeName?.toUpperCase();
@@ -23,6 +25,9 @@ export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActiv
     const penaltyText = penalty?.type === 'skip_turn' 
         ? `Lewati ${penalty.value} Giliran` 
         : `Mundur ${penalty?.value || 3} Langkah`;
+        
+    const remainingGiveUps = Math.max(0, MAX_GIVE_UP - giveUpCount);
+    const canGiveUp = remainingGiveUps > 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -81,10 +86,15 @@ export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActiv
                         {onFail && (
                             <Button
                                 variant="destructive"
-                                onClick={onFail}
-                                className="w-full bg-red-900/60 hover:bg-red-800/80 text-red-200 border border-red-500/30 text-xs py-3 mt-2"
+                                onClick={canGiveUp ? onFail : undefined}
+                                disabled={!canGiveUp}
+                                className={`w-full text-xs py-3 mt-2 ${canGiveUp 
+                                    ? "bg-red-900/60 hover:bg-red-800/80 text-red-200 border border-red-500/30" 
+                                    : "bg-gray-700/50 text-gray-400 cursor-not-allowed border border-gray-600"}`}
                             >
-                                💀 GAGAL / MENYERAH (Sanksi: {penaltyText})
+                                {canGiveUp 
+                                    ? `💀 GAGAL / MENYERAH (Sisa: ${remainingGiveUps}x) - Sanksi: ${penaltyText}`
+                                    : `🚫 Tidak Bisa Menyerah Lagi (Batas Max ${MAX_GIVE_UP}x)`}
                             </Button>
                         )}
                     </div>

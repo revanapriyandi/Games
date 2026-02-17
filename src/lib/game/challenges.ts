@@ -1,7 +1,7 @@
 import { db } from "../firebase";
 import { ref, update } from "firebase/database";
 import { getGameState } from "./core";
-import { SNAKES_LADDERS } from "../constants";
+import { SNAKES_LADDERS, MAX_GIVE_UP } from "../constants";
 import { calculateMovementOutcome } from "./movement";
 import { appendLogAndChat } from "./actions";
 
@@ -26,6 +26,16 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
 
   const penalty = gameState.currentPenalty || { type: 'steps', value: 3 };
+  
+  // Check Max Give Up
+  const player = gameState.players[playerId];
+  const currentGiveUpCount = player.giveUpCount || 0;
+  
+  if (currentGiveUpCount >= MAX_GIVE_UP) {
+      // Should not happen if UI is disabled, but safety check
+      return; 
+  }
+
   const updates: Record<string, unknown> = {
     [`rooms/${roomId}/currentChallenge`]: null,
     [`rooms/${roomId}/currentPenalty`]: null,
@@ -38,7 +48,6 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   let extraLogs: string[] = [];
 
   // Increment giveUpCount
-  const currentGiveUpCount = gameState.players[playerId].giveUpCount || 0;
   updates[`rooms/${roomId}/players/${playerId}/giveUpCount`] = currentGiveUpCount + 1;
 
   if (penalty.type === 'steps') {

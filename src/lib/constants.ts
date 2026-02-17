@@ -5,6 +5,9 @@
 /** Max players per room */
 export const MAX_PLAYERS = 4;
 
+/** Max give up count per player */
+export const MAX_GIVE_UP = 3;
+
 /** Avatar assignment order */
 export const AVATAR_ORDER = ["knight-red", "knight-blue", "knight-green", "knight-gold"];
 
