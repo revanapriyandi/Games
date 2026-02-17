@@ -108,7 +108,10 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
             {activeCardEffect?.targetId === player.id && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] }}
+                    animate={activeCardEffect.isBlocked
+                        ? { opacity: 1, scale: [0, 1.2, 1], x: [0, -5, 5, -5, 5, 0] } // Shake animation for blocked
+                        : { opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] } // Normal jump animation
+                    }
                     transition={{ duration: 0.6 }}
                     className="absolute -top-5 text-2xl z-40 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
                 >

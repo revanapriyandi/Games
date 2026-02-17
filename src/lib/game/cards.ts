@@ -58,6 +58,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
         break;
       }
 
@@ -66,6 +67,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
         const newPos = Math.max(1, (target.position || 1) - 3);
         updates[`rooms/${roomId}/players/${targetId}/position`] = newPos;
@@ -85,6 +87,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
         break;
       }
 
@@ -93,6 +96,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
         updates[`rooms/${roomId}/players/${targetId}/skippedTurns`] = 1;
         effect.targetId = targetId;
@@ -128,6 +132,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
         break;
       }
 
@@ -136,6 +141,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
         const targetCards = target.cards || [];
         if (targetCards.length === 0) {
@@ -167,6 +173,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
         break;
       }
 
@@ -175,6 +182,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
         const myPos = player.position || 1;
         const theirPos = target.position || 1;
