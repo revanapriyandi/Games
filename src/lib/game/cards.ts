@@ -49,8 +49,18 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
   switch (card.effectType) {
     case 'curse_back': {
-      if (!targetId || !gameState.players[targetId]) return;
+      if (!targetId || !gameState.players[targetId] || targetId === playerId) return;
       const target = gameState.players[targetId];
+
+      if (target.hasShield) {
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        newLogs.push(`🛡️ ${target.name} memblok Kutukan dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        break;
+      }
+
       if (target.role === 'tank') {
         newLogs.push(`🛡️ ${target.name} (Tank) menangkis Kutukan!`);
         effect.targetId = targetId;
@@ -66,8 +76,18 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       break;
     }
     case 'skip_target': {
-      if (!targetId || !gameState.players[targetId]) return;
+      if (!targetId || !gameState.players[targetId] || targetId === playerId) return;
       const target = gameState.players[targetId];
+
+      if (target.hasShield) {
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        newLogs.push(`🛡️ ${target.name} memblok Skip Giliran dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        break;
+      }
+
       if (target.role === 'tank') {
         newLogs.push(`🛡️ ${target.name} (Tank) menangkis Skip Giliran!`);
         effect.targetId = targetId;
@@ -99,8 +119,17 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       break;
     }
     case 'steal_card': {
-      if (!targetId || !gameState.players[targetId]) return;
+      if (!targetId || !gameState.players[targetId] || targetId === playerId) return;
       const target = gameState.players[targetId];
+
+      if (target.hasShield) {
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        newLogs.push(`🛡️ ${target.name} memblok pencurian kartu dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        break;
+      }
 
       if (target.role === 'tank') {
         newLogs.push(`🛡️ ${target.name} (Tank) menangkis pencurian kartu!`);
@@ -116,19 +145,12 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
           const stolenCard = targetCards[stolenIndex];
           const newTargetCards = targetCards.filter((_, i) => i !== stolenIndex);
           const newPlayerCards = [...updatedCards, stolenCard];
+
           updates[`rooms/${roomId}/players/${targetId}/cards`] = newTargetCards.length > 0 ? newTargetCards : null;
           // Override updatedCards with the new set including stolen card
           updates[`rooms/${roomId}/players/${playerId}/cards`] = newPlayerCards;
-          effect.targetId = targetId;
-          effect.targetName = target.name;
-          newLogs.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
 
-          await update(ref(db), {
-            ...updates,
-            [`rooms/${roomId}/activeCardEffect`]: effect,
-            [`rooms/${roomId}/logs`]: newLogs.slice(-50),
-          });
-          return;
+          newLogs.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
         }
         effect.targetId = targetId;
         effect.targetName = target.name;
@@ -136,8 +158,18 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       break;
     }
     case 'swap_position': {
-      if (!targetId || !gameState.players[targetId]) return;
+      if (!targetId || !gameState.players[targetId] || targetId === playerId) return;
       const target = gameState.players[targetId];
+
+      if (target.hasShield) {
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        newLogs.push(`🛡️ ${target.name} memblok Tukar Posisi dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        break;
+      }
+
       if (target.role === 'tank') {
         newLogs.push(`🛡️ ${target.name} (Tank) menangkis Tukar Posisi!`);
         effect.targetId = targetId;
@@ -161,8 +193,11 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     }
   }
 
-  // Update player's cards (remove used card)
-  updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards.length > 0 ? updatedCards : null;
+  // Update player's cards (remove used card) if not already updated by effect (e.g. steal_card)
+  if (!updates[`rooms/${roomId}/players/${playerId}/cards`]) {
+    updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards.length > 0 ? updatedCards : null;
+  }
+
   updates[`rooms/${roomId}/activeCardEffect`] = effect;
   if (newLogs.length > 50) newLogs.shift();
   updates[`rooms/${roomId}/logs`] = newLogs;
