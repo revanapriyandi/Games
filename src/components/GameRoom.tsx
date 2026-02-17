@@ -3,6 +3,8 @@ import { playCard, clearCardEffect } from "../lib/game";
 import { playCardUseSound } from "../lib/sounds";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
+import { useVoiceChat } from "../hooks/useVoiceChat";
+import { VoiceControl } from "./game/VoiceControl";
 import { GameHeader } from "./game/GameHeader";
 import { GameWaiting } from "./game/GameWaiting";
 import { PlayerTabs } from "./game/PlayerTabs";
@@ -39,6 +41,8 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
         handlePortalComplete
     } = useGameRoom({ roomId, playerId, onLeave });
 
+    const { isJoined, isMuted, toggleVoice, toggleMute, speakingPlayers } = useVoiceChat(roomId, playerId);
+
     const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
 
@@ -63,6 +67,12 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     if (gameState.status === "waiting") {
         return (
             <>
+                <VoiceControl
+                    isJoined={isJoined}
+                    isMuted={isMuted}
+                    toggleVoice={toggleVoice}
+                    toggleMute={toggleMute}
+                />
                 <GameWaiting
                     roomId={roomId}
                     players={playersList}
@@ -79,6 +89,12 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center relative overflow-y-auto bg-slate-900/50">
+            <VoiceControl
+                isJoined={isJoined}
+                isMuted={isMuted}
+                toggleVoice={toggleVoice}
+                toggleMute={toggleMute}
+            />
             <GameHeader
                 roomId={roomId}
                 onLeave={onLeave}
@@ -99,6 +115,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     activePortalCell={activePortalCell} 
                     portals={gameState.portals}
                     activeCardEffect={gameState.activeCardEffect}
+                    speakingPlayers={speakingPlayers}
                 />
             </div>
             

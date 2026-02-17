@@ -10,9 +10,10 @@ interface PlayerTokenProps {
     displayPosition?: number;
     thinkingPlayerId?: string | null;
     activeCardEffect?: ActiveCardEffect | null;
+    isSpeaking?: boolean;
 }
 
-export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlayerId, activeCardEffect }: PlayerTokenProps) {
+export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlayerId, activeCardEffect, isSpeaking }: PlayerTokenProps) {
     const pos = displayPosition ?? (player.position || 1);
     const { rowFromTop, colIndex } = getCellPosition(pos);
 
@@ -74,6 +75,23 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     className="absolute -top-4 text-xl z-30 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]"
                 >
                     ❓
+                </motion.div>
+            )}
+
+            {/* Voice Speaking Indicator */}
+            {isSpeaking && (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.5, y: 5 }}
+                    animate={{ opacity: 1, scale: [1, 1.2, 1], y: 0 }}
+                    transition={{ duration: 0.4, repeat: Infinity, repeatType: "reverse" }}
+                    className="absolute -top-6 -right-2 bg-green-500 text-white rounded-full p-0.5 z-50 shadow-md border border-white/30 flex items-center justify-center w-4 h-4 md:w-5 md:h-5"
+                >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
                 </motion.div>
             )}
 
