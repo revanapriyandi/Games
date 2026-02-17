@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# AI Board Game Adventure
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A real-time multiplayer board game powered by React, Firebase, and AI. Navigate snakes, ladders, challenges, and card battles with your friends!
 
-Currently, two official plugins are available:
+![Lobby Preview](public/screenshots/lobby_v2.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## New Features (v2.0)
 
-## React Compiler
+### 🎨 Modern Lobby & Avatar Selector
+- **Custom Avatars:** Choose your unique look using the new **Avatar Selector**, powered by [DiceBear](https://dicebear.com/).
+  - Search for your hero name to generate a unique avatar seed.
+  - Randomize to find something that fits your style.
+  - Supports multiple styles including Adventurer, Robot, and Emoji.
+- **Sleek UI:** A completely redesigned lobby with a dark, modern aesthetic, glassmorphism effects, and smoother animations using Framer Motion.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🐛 Gameplay Improvements & Fixes
+- **Double Dice Fix:** The "Double Dice" effect now correctly displays the halved value on the dice (e.g., rolling a 12 shows a 6) with a "x2" indicator, matching the movement logic.
+- **Exit Button:** Restored the missing "KELUAR" (Exit) button in the game header, allowing players to leave the room easily.
+- **Smoother Movement:** Character movement animations have been refactored to better handle Snakes & Ladders, preventing "backward walking" visual glitches.
 
-## Expanding the ESLint configuration
+![Gameplay Preview](public/screenshots/gameplay_v2.png)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Framer Motion
+- **Backend:** Firebase Realtime Database
+- **AI:** Google Gemini (for generating challenges and themes)
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Start the development server: `npm run dev`
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## License
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+MIT

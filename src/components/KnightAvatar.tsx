@@ -23,6 +23,11 @@ const AVATAR_IMAGES = [knightRed, knightBlue, knightGreen, knightGold];
  * use the playerIndex to assign a unique color.
  */
 export function getAvatarImage(avatarId: string, playerIndex: number = 0): string {
+    // If it's a URL (DiceBear or similar), return it directly
+    if (avatarId.startsWith('http') || avatarId.startsWith('data:')) {
+        return avatarId;
+    }
+
     const avatar = KNIGHT_AVATARS.find(a => a.id === avatarId);
     if (avatar) return avatar.image;
     // Fallback: use player index for unique color

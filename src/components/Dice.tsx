@@ -43,6 +43,17 @@ export function Dice({ rolling, value, onRoll, disabled, showResult }: DiceProps
     const canRoll = !disabled && !rolling;
     const [rollingFace, setRollingFace] = useState(1);
 
+    // Determine if it's a double dice roll based on value > 6
+    const isDouble = value && value > 6;
+    let displayFace = value || 1;
+
+    if (isDouble) {
+        displayFace = Math.floor(value / 2);
+    } else if (value && value > 6) {
+        // Fallback safety, though implied by isDouble
+        displayFace = 6;
+    }
+
     // Cycle through dice faces 1-6 rapidly when rolling
     useEffect(() => {
         if (!rolling) return;
@@ -57,6 +68,7 @@ export function Dice({ rolling, value, onRoll, disabled, showResult }: DiceProps
         <>
             {/* Simple clickable dice */}
             <motion.div
+                aria-label="Acak Dadu"
                 animate={canRoll ? {
                     y: [0, -6, 0],
                     rotate: [0, 3, -3, 0],
@@ -117,12 +129,17 @@ export function Dice({ rolling, value, onRoll, disabled, showResult }: DiceProps
                 >
                     {rolling ? (
                         <DiceFace value={rollingFace} size={56} />
-                    ) : value ? (
-                        <DiceFace value={value} size={56} />
                     ) : (
-                        <DiceFace value={1} size={56} />
+                        <DiceFace value={displayFace} size={56} />
                     )}
                 </div>
+
+                {/* Double Indicator */}
+                {isDouble && !rolling && (
+                    <div className="absolute -top-2 -right-2 bg-yellow-400 text-black font-bold text-xs px-1.5 py-0.5 rounded-full shadow-lg border border-white z-10">
+                        x2
+                    </div>
+                )}
             </motion.div>
 
             {/* ===== FULLSCREEN ROLLING OVERLAY (portaled to body) ===== */}
@@ -181,7 +198,7 @@ export function Dice({ rolling, value, onRoll, disabled, showResult }: DiceProps
                                 className="flex flex-col items-center gap-6"
                             >
                                 <div className="w-40 h-40 rounded-3xl bg-gradient-to-br from-red-500 via-red-600 to-red-800 shadow-[0_0_100px_rgba(239,68,68,0.9)] border-4 border-yellow-400 flex items-center justify-center">
-                                    <DiceFace value={value} size={130} />
+                                    <DiceFace value={displayFace} size={130} />
                                 </div>
                                 <motion.p
                                     initial={{ opacity: 0, y: 30 }}
