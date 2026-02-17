@@ -21,7 +21,6 @@ export async function createRoom(playerName: string, customAvatarUrl?: string, a
     position: 1,
     isHost: true,
     giveUpCount: 0,
-    role: undefined, // Explicitly undefined
   };
 
   if (customAvatarUrl) initialPlayer.customAvatarUrl = customAvatarUrl;
@@ -74,7 +73,6 @@ export async function joinRoom(roomId: string, playerName: string, customAvatarU
     position: 1,
     isHost: false,
     giveUpCount: 0,
-    role: undefined,
   };
 
   if (customAvatarUrl) newPlayer.customAvatarUrl = customAvatarUrl;

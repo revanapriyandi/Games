@@ -111,7 +111,6 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
     if (!animationFrameRef.current) {
       const checkVolume = () => {
         const speakingState: Record<string, boolean> = {};
-        let hasChanges = false;
 
         Object.entries(analysersRef.current).forEach(([pid, analyser]) => {
           const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -142,7 +141,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
     }
   };
 
-  const createPeerConnection = (targetId: string, initiator: boolean, stream: MediaStream) => {
+  const createPeerConnection = (targetId: string, _initiator: boolean, stream: MediaStream) => {
     if (peerConnectionsRef.current[targetId]) return peerConnectionsRef.current[targetId];
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -262,7 +261,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
       }
 
       // Listen for new participants
-      onValue(participantsRef, (snap) => {
+      onValue(participantsRef, (_snap) => {
           // We only care about new people if we are already joined.
           // The logic above handles existing.
           // Actually, 'child_added' might be better, but onValue is fine if we diff.
