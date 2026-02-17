@@ -1,7 +1,7 @@
 import { db } from "../firebase";
 import { ref, set, get, child, push, onValue, update, remove } from "firebase/database";
 import type { Player, GameState, AIConfig } from "../types";
-import { AVATAR_ORDER, MAX_PLAYERS } from "../constants";
+import { AVATAR_ORDER, MAX_PLAYERS, TREASURE_CARDS } from "../constants";
 import { generateRoomCode, generateRandomPortals } from "./utils";
 
 export async function getGameState(roomId: string): Promise<GameState> {
@@ -9,7 +9,7 @@ export async function getGameState(roomId: string): Promise<GameState> {
   return snapshot.val() as GameState;
 }
 
-export async function createRoom(playerName: string, aiConfig?: AIConfig) {
+export async function createRoom(playerName: string, role: string, customAvatarUrl?: string, aiConfig?: AIConfig) {
   const roomId = generateRoomCode();
   const playerRef = push(child(ref(db), `rooms/${roomId}/players`));
   const playerId = playerRef.key!;
@@ -21,6 +21,9 @@ export async function createRoom(playerName: string, aiConfig?: AIConfig) {
     position: 0,
     isHost: true,
     giveUpCount: 0,
+    role,
+    customAvatarUrl: customAvatarUrl || undefined,
+    cards: role === 'mage' ? [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]] : undefined,
   };
 
   const initialGameState: GameState = {
@@ -43,7 +46,7 @@ export async function createRoom(playerName: string, aiConfig?: AIConfig) {
   return { roomId, playerId };
 }
 
-export async function joinRoom(roomId: string, playerName: string) {
+export async function joinRoom(roomId: string, playerName: string, role: string, customAvatarUrl?: string) {
   const roomRef = ref(db, `rooms/${roomId}`);
   const snapshot = await get(roomRef);
 
@@ -71,6 +74,9 @@ export async function joinRoom(roomId: string, playerName: string) {
     position: 0,
     isHost: false,
     giveUpCount: 0,
+    role,
+    customAvatarUrl: customAvatarUrl || undefined,
+    cards: role === 'mage' ? [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]] : undefined,
   };
 
   await set(ref(db, `rooms/${roomId}/players/${playerId}`), newPlayer);

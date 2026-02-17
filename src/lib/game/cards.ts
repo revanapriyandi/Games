@@ -51,20 +51,34 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     case 'curse_back': {
       if (!targetId || !gameState.players[targetId]) return;
       const target = gameState.players[targetId];
-      const newPos = Math.max(1, (target.position || 1) - 3);
-      updates[`rooms/${roomId}/players/${targetId}/position`] = newPos;
-      effect.targetId = targetId;
-      effect.targetName = target.name;
-      newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
+      if (target.role === 'tank') {
+        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Kutukan!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+      } else {
+        const newPos = Math.max(1, (target.position || 1) - 3);
+        updates[`rooms/${roomId}/players/${targetId}/position`] = newPos;
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
+      }
       break;
     }
     case 'skip_target': {
       if (!targetId || !gameState.players[targetId]) return;
       const target = gameState.players[targetId];
-      updates[`rooms/${roomId}/players/${targetId}/skippedTurns`] = 1;
-      effect.targetId = targetId;
-      effect.targetName = target.name;
-      newLogs.push(`⏭️ ${player.name} membuat ${target.name} skip 1 giliran!`);
+      if (target.role === 'tank') {
+        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Skip Giliran!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+      } else {
+        updates[`rooms/${roomId}/players/${targetId}/skippedTurns`] = 1;
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        newLogs.push(`⏭️ ${player.name} membuat ${target.name} skip 1 giliran!`);
+      }
       break;
     }
     case 'double_dice': {
@@ -87,42 +101,57 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     case 'steal_card': {
       if (!targetId || !gameState.players[targetId]) return;
       const target = gameState.players[targetId];
-      const targetCards = target.cards || [];
-      if (targetCards.length === 0) {
-        newLogs.push(`🦊 ${player.name} mencoba mencuri kartu ${target.name}, tapi dia tidak punya kartu!`);
-      } else {
-        const stolenIndex = Math.floor(Math.random() * targetCards.length);
-        const stolenCard = targetCards[stolenIndex];
-        const newTargetCards = targetCards.filter((_, i) => i !== stolenIndex);
-        const newPlayerCards = [...updatedCards, stolenCard];
-        updates[`rooms/${roomId}/players/${targetId}/cards`] = newTargetCards.length > 0 ? newTargetCards : null;
-        // Override updatedCards with the new set including stolen card
-        updates[`rooms/${roomId}/players/${playerId}/cards`] = newPlayerCards;
+
+      if (target.role === 'tank') {
+        newLogs.push(`🛡️ ${target.name} (Tank) menangkis pencurian kartu!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
-        newLogs.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
-        // Early set cards since we handle it specially
-        await update(ref(db), {
-          ...updates,
-          [`rooms/${roomId}/activeCardEffect`]: effect,
-          [`rooms/${roomId}/logs`]: newLogs.slice(-50),
-        });
-        return; // Skip the default card update below
+        effect.emoji = '🛡️';
+      } else {
+        const targetCards = target.cards || [];
+        if (targetCards.length === 0) {
+          newLogs.push(`🦊 ${player.name} mencoba mencuri kartu ${target.name}, tapi dia tidak punya kartu!`);
+        } else {
+          const stolenIndex = Math.floor(Math.random() * targetCards.length);
+          const stolenCard = targetCards[stolenIndex];
+          const newTargetCards = targetCards.filter((_, i) => i !== stolenIndex);
+          const newPlayerCards = [...updatedCards, stolenCard];
+          updates[`rooms/${roomId}/players/${targetId}/cards`] = newTargetCards.length > 0 ? newTargetCards : null;
+          // Override updatedCards with the new set including stolen card
+          updates[`rooms/${roomId}/players/${playerId}/cards`] = newPlayerCards;
+          effect.targetId = targetId;
+          effect.targetName = target.name;
+          newLogs.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
+
+          await update(ref(db), {
+            ...updates,
+            [`rooms/${roomId}/activeCardEffect`]: effect,
+            [`rooms/${roomId}/logs`]: newLogs.slice(-50),
+          });
+          return;
+        }
+        effect.targetId = targetId;
+        effect.targetName = target.name;
       }
-      effect.targetId = targetId;
-      effect.targetName = target.name;
       break;
     }
     case 'swap_position': {
       if (!targetId || !gameState.players[targetId]) return;
       const target = gameState.players[targetId];
-      const myPos = player.position || 1;
-      const theirPos = target.position || 1;
-      updates[`rooms/${roomId}/players/${playerId}/position`] = theirPos;
-      updates[`rooms/${roomId}/players/${targetId}/position`] = myPos;
-      effect.targetId = targetId;
-      effect.targetName = target.name;
-      newLogs.push(`🔄 ${player.name} bertukar posisi dengan ${target.name}! (${myPos} ↔ ${theirPos})`);
+      if (target.role === 'tank') {
+        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Tukar Posisi!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+      } else {
+        const myPos = player.position || 1;
+        const theirPos = target.position || 1;
+        updates[`rooms/${roomId}/players/${playerId}/position`] = theirPos;
+        updates[`rooms/${roomId}/players/${targetId}/position`] = myPos;
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        newLogs.push(`🔄 ${player.name} bertukar posisi dengan ${target.name}! (${myPos} ↔ ${theirPos})`);
+      }
       break;
     }
     case 'extra_turn': {

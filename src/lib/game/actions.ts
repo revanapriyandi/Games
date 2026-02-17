@@ -68,20 +68,38 @@ export async function rollDice(roomId: string, playerId: string) {
   // Determine portal effects
   const currentPortals = gameState.portals || SNAKES_LADDERS;
   const hasPortal = !!currentPortals[newPosition];
+  let destination = hasPortal ? currentPortals[newPosition] : newPosition;
 
   // Check shield: if snake, block it
   let shieldBlocked = false;
-  if (hasPortal && currentPortals[newPosition] < newPosition && player.hasShield) {
+  if (hasPortal && destination < newPosition && player.hasShield) {
     shieldBlocked = true;
+  }
+
+  // Ninja Logic: 50% chance to dodge snake
+  let ninjaDodged = false;
+  if (hasPortal && destination < newPosition && player.role === 'ninja' && !shieldBlocked) {
+    if (Math.random() < 0.5) {
+      ninjaDodged = true;
+    }
   }
 
   // Wait for dice animation
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   const updates: Record<string, unknown> = {};
+  let logs = [...(gameState.logs || [])];
 
-  if (hasPortal && !shieldBlocked) {
-    const destination = currentPortals[newPosition];
+  if (hasPortal && !shieldBlocked && !ninjaDodged) {
+    // Builder Logic: +2 steps on ladder
+    if (destination > newPosition && player.role === 'builder') {
+      const originalDest = destination;
+      destination = Math.min(100, destination + 2);
+      if (destination > originalDest) {
+        logs.push(`🏗️ ${player.name} (Builder) memperpanjang tangga!`);
+      }
+    }
+
     updates[`rooms/${roomId}/portalFrom`] = newPosition;
     updates[`rooms/${roomId}/portalTo`] = destination;
     updates[`rooms/${roomId}/portalType`] = destination > newPosition ? "ladder" : "snake";
@@ -92,11 +110,15 @@ export async function rollDice(roomId: string, playerId: string) {
     updates[`rooms/${roomId}/portalType`] = null;
     if (shieldBlocked) {
       updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
-      const newLogs = [...(gameState.logs || []), `🛡️ ${player.name} memblok ular dengan Perisai!`];
-      if (newLogs.length > 50) newLogs.shift();
-      updates[`rooms/${roomId}/logs`] = newLogs;
+      logs.push(`🛡️ ${player.name} memblok ular dengan Perisai!`);
+    } else if (ninjaDodged) {
+      logs.push(`🥷 ${player.name} (Ninja) menghindari ular dengan lincah!`);
     }
   }
+
+  // Update logs early if modified
+  if (logs.length > 50) logs.shift();
+  updates[`rooms/${roomId}/logs`] = logs;
 
   // Check for winner
   if (newPosition === 100) {
@@ -163,9 +185,8 @@ export async function rollDice(roomId: string, playerId: string) {
       updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
     } else {
       updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-      const newLogs = [...(gameState.logs || []), `⚡ ${player.name} menggunakan Bonus Giliran!`];
-      if (newLogs.length > 50) newLogs.shift();
-      updates[`rooms/${roomId}/logs`] = newLogs;
+      logs.push(`⚡ ${player.name} menggunakan Bonus Giliran!`);
+      updates[`rooms/${roomId}/logs`] = logs; // Update logs again if extra turn used
     }
 
     await update(ref(db), updates);
