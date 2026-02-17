@@ -1,6 +1,8 @@
 import { db } from "../firebase";
 import { ref, update } from "firebase/database";
 import { getGameState } from "./core";
+import { SNAKES_LADDERS } from "../constants";
+import { calculateMovementOutcome } from "./movement";
 import type { ActiveCardEffect } from "../types";
 
 export async function dismissTreasure(roomId: string) {
@@ -69,11 +71,25 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         effect.emoji = '🛡️';
         effect.isBlocked = true;
       } else {
-        const newPos = Math.max(1, (target.position || 1) - 3);
-        updates[`rooms/${roomId}/players/${targetId}/position`] = newPos;
+        const currentPos = target.position || 1;
+        const portals = gameState.portals || SNAKES_LADDERS;
+        const moveResult = calculateMovementOutcome(currentPos, -3, portals, target);
+
+        updates[`rooms/${roomId}/players/${targetId}/position`] = moveResult.finalPosition;
+
+        // Handle portal logs and updates
+        if (moveResult.portal) {
+             updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+             updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+             updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+        }
+
+        // Append move logs (e.g. Ninja dodge, Builder)
+        newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
+        newLogs.push(...moveResult.logs);
+
         effect.targetId = targetId;
         effect.targetName = target.name;
-        newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
       }
       break;
     }
@@ -112,9 +128,23 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     }
     case 'teleport': {
       const currentPos = player.position || 1;
-      const newPos = Math.min(99, currentPos + 5);
-      updates[`rooms/${roomId}/players/${playerId}/position`] = newPos;
-      newLogs.push(`🌀 ${player.name} teleportasi maju 5 langkah! (${currentPos} → ${newPos})`);
+      const portals = gameState.portals || SNAKES_LADDERS;
+      const moveResult = calculateMovementOutcome(currentPos, 5, portals, player);
+
+      updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
+
+      if (moveResult.portal) {
+             updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+             updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+             updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+      }
+
+      if (moveResult.shieldUsed) {
+           updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
+      }
+
+      newLogs.push(`🌀 ${player.name} teleportasi maju 5 langkah!`);
+      newLogs.push(...moveResult.logs);
       break;
     }
     case 'shield': {
