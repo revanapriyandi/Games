@@ -20,6 +20,31 @@ export async function markChallengeComplete(roomId: string) {
   });
 }
 
+export async function skipChallengeWithCard(roomId: string, playerId: string) {
+  const gameState = await getGameState(roomId);
+  const player = gameState.players[playerId];
+  
+  // Find card index
+  const cardIndex = player.cards?.findIndex(c => c.effectType === 'skip_challenge') ?? -1;
+  const hasCard = cardIndex !== -1;
+
+  if (!hasCard) return;
+
+  // Remove card
+  const updatedCards = [...(player.cards || [])];
+  updatedCards.splice(cardIndex, 1);
+
+  await update(ref(db), {
+      [`rooms/${roomId}/players/${playerId}/cards`]: updatedCards.length > 0 ? updatedCards : null,
+  });
+
+  // Log usage
+  await appendLogAndChat(roomId, gameState.logs || [], [`✨ ${player.name} menggunakan Kartu Bebas Tantangan! 🕊️`], {});
+
+  // Mark complete
+  await markChallengeComplete(roomId);
+}
+
 export async function failChallenge(roomId: string, playerName: string, playerId: string) {
   const gameState = await getGameState(roomId);
   const playersIds = Object.keys(gameState.players);

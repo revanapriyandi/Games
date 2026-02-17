@@ -107,6 +107,7 @@ export const TREASURE_CARDS = [
   { id: 'bomb', name: 'Bom', emoji: '💣', description: 'Ledakkan musuh mundur 5 langkah!', effectType: 'bomb' as const, targetType: 'other' as const },
   { id: 'magic_dice', name: 'Dadu Ajaib', emoji: '🎱', description: 'Roll berikutnya pasti angka 6!', effectType: 'magic_dice' as const, targetType: 'self' as const },
   { id: 'magnet', name: 'Magnet', emoji: '🧲', description: 'Tarik musuh ke belakangmu!', effectType: 'magnet' as const, targetType: 'other' as const },
+  { id: 'skip_challenge', name: 'Bebas Tantangan', emoji: '🕊️', description: 'Lewati 1 tantangan tanpa sanksi!', effectType: 'skip_challenge' as const, targetType: 'self' as const },
 ];
 
 /** Cells where treasure chests appear (~15 cells, non-overlapping with challenges/portals) */

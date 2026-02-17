@@ -12,9 +12,11 @@ interface ChallengeModalProps {
     themeName?: string;
     onFail?: () => void;
     giveUpCount?: number;
+    hasSkipCard?: boolean;
+    onSkip?: () => void;
 }
 
-export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActivePlayer, playerName, themeName, onFail, giveUpCount = 0 }: ChallengeModalProps) {
+export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActivePlayer, playerName, themeName, onFail, giveUpCount = 0, hasSkipCard, onSkip }: ChallengeModalProps) {
     if (!isOpen) return null;
 
     const formattedTheme = themeName?.toUpperCase();
@@ -82,6 +84,15 @@ export function ChallengeModal({ isOpen, challenge, penalty, onComplete, isActiv
                         <div className="text-yellow-400 font-mono animate-pulse text-sm">
                             Lakukan tantangan ini agar temanmu memverifikasi!
                         </div>
+
+                        {onSkip && hasSkipCard && (
+                            <Button
+                                onClick={onSkip}
+                                className="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-3 text-sm animate-pulse shadow-[0_0_15px_rgba(20,184,166,0.5)] border border-teal-400/50"
+                            >
+                                ✨ Gunakan Kartu Bebas Tantangan 🕊️
+                            </Button>
+                        )}
 
                         {onFail && (
                             <Button

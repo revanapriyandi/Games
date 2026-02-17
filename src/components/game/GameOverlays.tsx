@@ -5,7 +5,7 @@ import TreasureModal from "../TreasureModal";
 import { WinnerModal } from "../WinnerModal";
 import { PortalAnimation } from "../PortalAnimation";
 import { RoleSelectionModal } from "./RoleSelectionModal";
-import { failChallenge, markChallengeComplete, dismissTreasure, resetGame, selectRole } from "../../lib/game";
+import { failChallenge, markChallengeComplete, dismissTreasure, resetGame, selectRole, skipChallengeWithCard } from "../../lib/game";
 import { playTreasureSound } from "../../lib/sounds";
 
 interface GameOverlaysProps {
@@ -60,6 +60,13 @@ export function GameOverlays({
         setIsCompletingChallenge(false);
     }
 
+    const handleSkipWithCard = async () => {
+        if (!activePlayer) return;
+        setIsCompletingChallenge(true);
+        await skipChallengeWithCard(roomId, activePlayer.id);
+        setIsCompletingChallenge(false);
+    }
+
     const handleDismissTreasure = async () => {
         playTreasureSound();
         await dismissTreasure(roomId);
@@ -81,6 +88,8 @@ export function GameOverlays({
                             onFail={handleChallengeFail}
                             themeName={gameState.aiConfig?.theme}
                             giveUpCount={activePlayer?.giveUpCount || 0}
+                            hasSkipCard={activePlayer?.cards?.some(c => c.effectType === 'skip_challenge')}
+                            onSkip={handleSkipWithCard}
                         />
                     </div>
                 )}
