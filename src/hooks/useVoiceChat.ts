@@ -45,13 +45,13 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
       // We cannot call leaveVoice here because it's async and depends on state
       // Instead, we just cleanup refs.
       if (localStreamRef.current) {
-         localStreamRef.current.getTracks().forEach(track => track.stop());
+        localStreamRef.current.getTracks().forEach(track => track.stop());
       }
       if (audioContextRef.current) {
-         audioContextRef.current.close();
+        audioContextRef.current.close();
       }
       if (animationFrameRef.current) {
-         cancelAnimationFrame(animationFrameRef.current);
+        cancelAnimationFrame(animationFrameRef.current);
       }
     };
   }, []);
@@ -140,10 +140,10 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
         });
 
         setSpeakingPlayers(prev => {
-            // Simple check to avoid unnecessary re-renders
-            const isDifferent = Object.keys(speakingState).some(k => speakingState[k] !== prev[k]) ||
-                                Object.keys(prev).some(k => speakingState[k] === undefined);
-            return isDifferent ? speakingState : prev;
+          // Simple check to avoid unnecessary re-renders
+          const isDifferent = Object.keys(speakingState).some(k => speakingState[k] !== prev[k]) ||
+            Object.keys(prev).some(k => speakingState[k] === undefined);
+          return isDifferent ? speakingState : prev;
         });
 
         animationFrameRef.current = requestAnimationFrame(checkVolume);
@@ -215,41 +215,41 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
 
         // Iterate over senders
         for (const [senderId, signals] of Object.entries(data)) {
-            if (senderId === playerIdRef.current) continue;
+          if (senderId === playerIdRef.current) continue;
 
-            // Iterate over signals from this sender
-            // Note: Firebase lists might be objects with push keys
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            for (const [key, signal] of Object.entries(signals as Record<string, any>)) {
-                 if (!signal) continue;
+          // Iterate over signals from this sender
+          // Note: Firebase lists might be objects with push keys
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          for (const [key, signal] of Object.entries(signals as Record<string, any>)) {
+            if (!signal) continue;
 
-                 const pc = peerConnectionsRef.current[senderId] || createPeerConnection(senderId, false, stream);
+            const pc = peerConnectionsRef.current[senderId] || createPeerConnection(senderId, false, stream);
 
-                 if (signal.type === 'offer') {
-                     if (pc.signalingState !== 'stable') continue; // Avoid race conditions
-                     await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.sdp)));
-                     const answer = await pc.createAnswer();
-                     await pc.setLocalDescription(answer);
+            if (signal.type === 'offer') {
+              if (pc.signalingState !== 'stable') continue; // Avoid race conditions
+              await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.sdp)));
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
 
-                     push(ref(db, `voice/${roomIdRef.current}/signals/${senderId}/${playerIdRef.current}`), {
-                         type: 'answer',
-                         sdp: JSON.stringify(answer)
-                     });
-                 } else if (signal.type === 'answer') {
-                     if (pc.signalingState === 'have-local-offer') {
-                         await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.sdp)));
-                     }
-                 } else if (signal.type === 'candidate') {
-                     try {
-                        await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(signal.candidate)));
-                     } catch (e) {
-                         console.error("Error adding ice candidate", e);
-                     }
-                 }
-
-                 // Remove processed signal to avoid reprocessing
-                 remove(ref(db, `voice/${roomIdRef.current}/signals/${playerIdRef.current}/${senderId}/${key}`));
+              push(ref(db, `voice/${roomIdRef.current}/signals/${senderId}/${playerIdRef.current}`), {
+                type: 'answer',
+                sdp: JSON.stringify(answer)
+              });
+            } else if (signal.type === 'answer') {
+              if (pc.signalingState === 'have-local-offer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(JSON.parse(signal.sdp)));
+              }
+            } else if (signal.type === 'candidate') {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(JSON.parse(signal.candidate)));
+              } catch (e) {
+                console.error("Error adding ice candidate", e);
+              }
             }
+
+            // Remove processed signal to avoid reprocessing
+            remove(ref(db, `voice/${roomIdRef.current}/signals/${playerIdRef.current}/${senderId}/${key}`));
+          }
         }
       });
 
@@ -257,31 +257,28 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
       const participantsRef = ref(db, `voice/${roomIdRef.current}/participants`);
       const snapshot = await get(participantsRef);
       if (snapshot.exists()) {
-          const participants = snapshot.val();
-          for (const targetId of Object.keys(participants)) {
-              if (targetId === playerIdRef.current) continue;
+        const participants = snapshot.val();
+        for (const targetId of Object.keys(participants)) {
+          if (targetId === playerIdRef.current) continue;
 
-              const pc = createPeerConnection(targetId, true, stream);
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
+          const pc = createPeerConnection(targetId, true, stream);
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
 
-              push(ref(db, `voice/${roomIdRef.current}/signals/${targetId}/${playerIdRef.current}`), {
-                  type: 'offer',
-                  sdp: JSON.stringify(offer)
-              });
-          }
+          push(ref(db, `voice/${roomIdRef.current}/signals/${targetId}/${playerIdRef.current}`), {
+            type: 'offer',
+            sdp: JSON.stringify(offer)
+          });
+        }
       }
 
       // Listen for new participants
-      onValue(participantsRef, (_snap) => {
-          // We only care about new people if we are already joined.
-          // The logic above handles existing.
-          // Actually, 'child_added' might be better, but onValue is fine if we diff.
-          // For simplicity, we rely on the fact that when THEY join, they will see US and send an offer.
-          // So we don't strictly need to initiate connections to new joiners if they initiate to us.
-          // But purely mesh usually implies "Initiator = New Joiner" OR "Initiator = Alphabetic sort".
-          // Let's stick to "New Joiner initiates to everyone already there".
-      });
+      // The logic above handles existing.
+      // Actually, 'child_added' might be better, but onValue is fine if we diff.
+      // For simplicity, we rely on the fact that when THEY join, they will see US and send an offer.
+      // So we don't strictly need to initiate connections to new joiners if they initiate to us.
+      // But purely mesh usually implies "Initiator = New Joiner" OR "Initiator = Alphabetic sort".
+      // Let's stick to "New Joiner initiates to everyone already there".
 
     } catch (error) {
       console.error("Error joining voice chat:", error);

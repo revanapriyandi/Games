@@ -3,11 +3,15 @@ import { db } from "../firebase";
 import { ref, update, set, push, child, get } from "firebase/database";
 import { CHALLENGE_CELLS, TREASURE_CELLS, ROLE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SNAKES_LADDERS } from "../constants";
 import { ROLES, getRole, type RoleType } from "../roles";
+import type { HouseRules } from "../types";
 import { getAvatarUrl, type AvatarStyle } from "../avatar";
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
 import { generateRandomPortals } from "./utils";
 import { calculateMovementOutcome } from "./movement";
+
+const BOT_NAMES = ["Auto-Bot 🤖", "Dice-o-Tron 🎲", "Mecha-Snake 🐍", "Robo-Knight ⚔️", "Cyber-Mage 🧙‍♂️", "Techno-Ninja 🥷"];
+const BOT_AVATARS: AvatarStyle[] = ['bottts', 'fun-emoji', 'adventurer', 'avataaars'];
 
 // Helper to append logs and sync with chat
 export function appendLogAndChat(
@@ -36,6 +40,28 @@ export function appendLogAndChat(
 
 export async function startGame(roomId: string) {
   await update(ref(db, `rooms/${roomId}`), { status: "playing" });
+}
+
+export async function addBot(roomId: string) {
+  const botId = `bot-${Date.now()}`;
+  const randomName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+  const randomStyle = BOT_AVATARS[Math.floor(Math.random() * BOT_AVATARS.length)];
+  const avatarUrl = getAvatarUrl(randomStyle, randomName); // Seed with name
+
+  await update(ref(db, `rooms/${roomId}/players/${botId}`), {
+      id: botId,
+      name: randomName,
+      avatar: randomStyle, // Fallback
+      customAvatarUrl: avatarUrl,
+      position: 1,
+      isHost: false,
+      isBot: true,
+      hasShield: false
+  });
+}
+
+export async function updateRules(roomId: string, rules: HouseRules) {
+  await update(ref(db, `rooms/${roomId}`), { rules });
 }
 
 export async function selectRole(roomId: string, playerId: string, roleIdFromSelection: string) {
@@ -141,7 +167,7 @@ export async function rollDice(roomId: string, playerId: string) {
   const currentPos = gameState.players[playerId].position || 1;
   const currentPortals = gameState.portals || SNAKES_LADDERS;
 
-  const moveResult = calculateMovementOutcome(currentPos, roll, currentPortals, player);
+  const moveResult = calculateMovementOutcome(currentPos, roll, currentPortals, player, gameState.rules);
   const landingSpot = moveResult.portal ? moveResult.portal.from : moveResult.finalPosition;
 
   // Check cell types at destination (landing spot)
@@ -292,6 +318,34 @@ export async function rollDice(roomId: string, playerId: string) {
         [`rooms/${roomId}/currentPenalty`]: { type: 'steps', value: 3 }
       });
     }
+    
+    // Auto-resolve Challenge for Bots
+    if (player.isBot) {
+        // Bot fails challenge instantly to save time? Or simple logic.
+        // Let's just apply penalty after a short delay or immediately?
+        // Actually, if we set currentChallenge, the UI shows it.
+        // We'll let the GameRoom effect handle Bot clearing, OR we do it here.
+        // Doing it here is cleaner: Don't set `currentChallenge` for bot, just log and apply result.
+        // But `generateSingleChallenge` overhead...
+        // Let's simplify: Bot blindly accepts penalty.
+        updates[`rooms/${roomId}/currentChallenge`] = null; // No UI
+        // Apply penalty immediately
+        const penaltyVal = 3; 
+        const newPos = Math.max(1, landingSpot - penaltyVal);
+        updates[`rooms/${roomId}/players/${playerId}/position`] = newPos;
+        appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} gagal tantangan (Bot). Mundur ${penaltyVal} langkah.`], updates);
+        
+        // Pass Turn
+        if (!player.extraTurn) {
+             const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
+             updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+        } else {
+             updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
+        }
+        await update(ref(db), updates);
+        return; // Exit
+    }
+
   } else if (isTreasure) {
     // Treasure cell — give a random card! Works even if portal also exists.
     const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
@@ -301,14 +355,47 @@ export async function rollDice(roomId: string, playerId: string) {
     const updatedCards = [...existingCards, randomCard];
 
     updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
+    
+    if (player.isBot) {
+        // Bot: Instantly get card, no UI modal
+        appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} menemukan ${randomCard.name}!`], updates);
+        
+        // Pass Turn
+        if (!player.extraTurn) {
+             const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
+             updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+        } else {
+             updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
+        }
+        await update(ref(db), updates);
+        return;
+    }
+
     updates[`rooms/${roomId}/currentTreasure`] = randomCard;
     // Don't advance turn yet — wait for player to dismiss treasure modal
     await update(ref(db), updates);
   } else if (isRole) {
       // Role Cell - Offer selection. Works even if portal also exists.
       const shuffledRoles = [...ROLES].sort(() => 0.5 - Math.random());
-      const selectedRoleIds = shuffledRoles.slice(0, 3).map(r => r.id);
+      
+      if (player.isBot) {
+           // Bot: Auto-assign random role
+           const randomRole = shuffledRoles[0];
+           updates[`rooms/${roomId}/players/${playerId}/role`] = randomRole.id;
+           appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} memilih Job: ${randomRole.name}`], updates);
+           
+            // Pass Turn
+            if (!player.extraTurn) {
+                const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
+                updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+            } else {
+                updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
+            }
+            await update(ref(db), updates);
+            return;
+      }
 
+      const selectedRoleIds = shuffledRoles.slice(0, 3).map(r => r.id);
       updates[`rooms/${roomId}/currentRoleSelection`] = selectedRoleIds;
       // Don't advance turn yet - wait for player to select role
       await update(ref(db), updates);

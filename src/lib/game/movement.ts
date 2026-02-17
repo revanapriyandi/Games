@@ -1,4 +1,4 @@
-import type { Player } from "../types";
+import type { HouseRules, Player } from "../types";
 
 export interface MovementResult {
   finalPosition: number;
@@ -18,13 +18,21 @@ export function calculateMovementOutcome(
   currentPos: number,
   steps: number,
   portals: Record<number, number>,
-  player: Player
+  player: Player,
+  rules?: HouseRules
 ): MovementResult {
   // 1. Calculate base move
   let newPosition = currentPos + steps;
 
   // Handle board boundaries
-  if (newPosition > 100) newPosition = 100 - (newPosition - 100);
+  // Rule: Strict Finish (Bounce Back) vs Easy Finish (Clamp)
+  if (rules?.strictFinish) {
+      if (newPosition > 100) newPosition = 100 - (newPosition - 100);
+  } else {
+      // Default: Easy Finish - Any overshoot counts as landing on 100
+      if (newPosition > 100) newPosition = 100;
+  }
+  
   if (newPosition < 1) newPosition = 1;
 
   const logs: string[] = [];
@@ -43,7 +51,7 @@ export function calculateMovementOutcome(
   if (hasPortal) {
       if (destination < newPosition) {
           // Snake (Penalty)
-          if (player.hasShield) {
+          if (player.hasShield && !rules?.noShield) {
               shieldBlocked = true;
               logs.push(`🛡️ ${player.name} memblok ular dengan Perisai!`);
               destination = newPosition; // Stay at top
@@ -60,7 +68,14 @@ export function calculateMovementOutcome(
               logs.push(`🎭 ${player.name} (Jester) mengubah Ular menjadi Trampolin! Loncat ke kotak ${destination}!`);
               triggeredAbility = 'jester';
           } else {
-              logs.push(`🐍 ${player.name} digigit ular! Turun ke kotak ${destination}.`);
+              // Apply Double Snake Rule
+              if (rules?.doubleSnake) {
+                  const drop = newPosition - destination;
+                  destination = Math.max(1, destination - drop);
+                  logs.push(`🐍☠️ DOUBLE SNAKE! ${player.name} jatuh 2x lipat ke kotak ${destination}!`);
+              } else {
+                  logs.push(`🐍 ${player.name} digigit ular! Turun ke kotak ${destination}.`);
+              }
           }
       } else if (destination > newPosition) {
           // Ladder (Bonus)

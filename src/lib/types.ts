@@ -41,6 +41,7 @@ export interface Player {
   extraTurn?: boolean;
   giveUpCount?: number;
   chatMessage?: string;
+  isBot?: boolean;
 }
 
 /** AI-generated game content based on user's theme */
@@ -58,6 +59,12 @@ export interface ChatMessage {
   senderName: string;
   message: string;
   timestamp: number;
+}
+
+export interface HouseRules {
+  strictFinish: boolean; // Must land exactly on 100
+  doubleSnake: boolean; // Snakes go down twice as far (visual implementation or just logic?) -> Logic: Double the distance dropped? Or standard snake just visual? Let's say "More Snakes" or just specific logic. For now: just a flag.
+  noShield: boolean; // Cannot use shield cards
 }
 
 /** Complete game state synced via Firebase */
@@ -92,6 +99,7 @@ export interface GameState {
   stakes?: string | null;
   stakesAcceptedBy?: string[];
   fogDuration?: number;
+  rules?: HouseRules;
 }
 
 /** Response from Gemini for lobby setup */

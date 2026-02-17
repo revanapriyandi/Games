@@ -4,7 +4,8 @@ import { Button } from "../ui/button";
 import type { Player } from "../../lib/types";
 import { kickPlayer, startGame } from "../../lib/game";
 import { getAvatarImage } from "../KnightAvatar";
-import { Copy, User, Crown, AlertTriangle, ShieldAlert } from "lucide-react";
+import { Copy, User, Crown, AlertTriangle, ShieldAlert, Settings } from "lucide-react";
+import type { HouseRules } from "../../lib/types";
 
 interface GameWaitingProps {
     roomId: string;
@@ -18,9 +19,12 @@ interface GameWaitingProps {
     onChangeStakes?: (val: string) => void;
     stakesAcceptedBy?: string[];
     onAcceptStakes?: () => void;
+    rules?: HouseRules;
+    onUpdateRules?: (rules: HouseRules) => void;
+    onAddBot?: () => void;
 }
 
-export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes }: GameWaitingProps) {
+export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules, onAddBot }: GameWaitingProps) {
     const [isStakesModalOpen, setIsStakesModalOpen] = useState(false);
     const hasStakes = !!stakes && stakes.trim().length > 0;
     const allAccepted = !hasStakes || (stakesAcceptedBy && players.every(p => stakesAcceptedBy.includes(p.id)));
@@ -64,6 +68,14 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             <AlertTriangle size={10} />
                             Butuh min. 2
                          </span>
+                    )}
+                    {isHost && players.length < 4 && (
+                        <button 
+                            onClick={onAddBot}
+                            className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
+                        >
+                            <span>🤖</span> +Bot
+                        </button>
                     )}
                 </div>
 
@@ -203,6 +215,54 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                 )}
             </AnimatePresence>
 
+
+
+
+            {/* House Rules Section */}
+            <div className="mb-6 bg-white/5 p-4 rounded-xl border border-white/5 text-left">
+                <h3 className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <Settings size={12} />
+                    Variasi Aturan Game
+                </h3>
+                
+                <div className="space-y-2">
+                    {/* Strict Finish Rule */}
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5">
+                        <div>
+                            <div className="text-xs text-white font-bold">Exact Win Only</div>
+                            <div className="text-[9px] text-gray-400">Harus dadu pas untuk finish (100).</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={!!rules?.strictFinish}
+                                disabled={!isHost}
+                                onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), strictFinish: e.target.checked })}
+                            />
+                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+
+                    {/* Double Snake Rule */} // Temporarily just visual/flag
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5">
+                        <div>
+                            <div className="text-xs text-white font-bold">Double Snake Penalty</div>
+                            <div className="text-[9px] text-gray-400">Turun ular lebih jauh / menyakitkan.</div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                className="sr-only peer"
+                                checked={!!rules?.doubleSnake}
+                                disabled={!isHost}
+                                onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), doubleSnake: e.target.checked })}
+                            />
+                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
 
             {/* Actions */}
             <div className="space-y-3">
