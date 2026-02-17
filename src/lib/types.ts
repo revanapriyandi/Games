@@ -21,6 +21,7 @@ export interface ActiveCardEffect {
   userName: string;
   targetId?: string;
   targetName?: string;
+  isBlocked?: boolean;
 }
 
 /** Player state in a game room */
