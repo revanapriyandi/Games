@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { playCard, clearCardEffect } from "../lib/game";
+import { playCard, clearCardEffect, updateStakes, acceptStakes } from "../lib/game";
 import { playCardUseSound, playWorldEventSound } from "../lib/sounds";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
@@ -94,6 +94,10 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     onLeave={onLeave}
                     onCopy={handleCopy}
                     copied={copied}
+                    stakes={gameState.stakes}
+                    onChangeStakes={(val) => updateStakes(roomId, val)}
+                    stakesAcceptedBy={gameState.stakesAcceptedBy || []}
+                    onAcceptStakes={() => acceptStakes(roomId, playerId)}
                 />
                 <GameChat
                     roomId={roomId}
@@ -133,6 +137,16 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
             <div className="fixed top-3 right-3 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 select-all">
                 ROOM: <span className="text-white font-bold">{roomId}</span>
             </div>
+
+            {/* Stakes Badge (In-Game) */}
+            {gameState.stakes && (
+                <div className="fixed top-3 right-36 z-20 pointer-events-none hidden md:block">
+                     <div className="px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-[10px] text-yellow-400 font-bold flex items-center gap-2">
+                        <span>🏆</span>
+                        <span className="max-w-[150px] truncate">"{gameState.stakes}"</span>
+                     </div>
+                </div>
+            )}
             
             {/* World Event Notification */}
             {gameState.activeWorldEvent && (

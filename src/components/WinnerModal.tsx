@@ -12,9 +12,10 @@ interface WinnerModalProps {
     currentPlayerId: string;
     onReset: () => void;
     onExit: () => void;
+    stakes?: string | null;
 }
 
-export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExit }: WinnerModalProps) {
+export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExit, stakes }: WinnerModalProps) {
     const winner = players.find(p => p.id === winnerId);
     const losers = players.filter(p => p.id !== winnerId).sort((a, b) => (b.position || 0) - (a.position || 0));
     const isWinner = currentPlayerId === winnerId;
@@ -97,6 +98,19 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
                         <p className="text-gray-400 text-sm italic mt-1">
                             {isWinner ? "Selamat! Kamu adalah juara sejati!" : "Jangan menyerah, coba lagi!"}
                         </p>
+
+                        {/* Stakes Display */}
+                        {stakes && (
+                            <div className="mt-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 animate-pulse">
+                                <div className="text-[10px] uppercase tracking-widest text-yellow-500 font-bold mb-1">
+                                    HADIAH KAMU
+                                </div>
+                                <div className="text-lg font-bold text-yellow-200">
+                                    "{stakes}"
+                                </div>
+                            </div>
+                        )}
+
                         {winner.giveUpCount && winner.giveUpCount > 0 ? (
                             <p className="text-xs text-red-400 mt-2 font-mono">
                                 (Pernah menyerah {winner.giveUpCount}x tapi tetap menang!)

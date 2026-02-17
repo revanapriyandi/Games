@@ -13,14 +13,22 @@ interface GameWaitingProps {
     onLeave: () => void;
     onCopy: () => void;
     copied: boolean;
+    stakes?: string | null;
+    onChangeStakes?: (val: string) => void;
+    stakesAcceptedBy?: string[];
+    onAcceptStakes?: () => void;
 }
 
-export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied }: GameWaitingProps) {
+export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes }: GameWaitingProps) {
+    const hasStakes = !!stakes && stakes.trim().length > 0;
+    const allAccepted = !hasStakes || (stakesAcceptedBy && players.every(p => stakesAcceptedBy.includes(p.id)));
+    const iAccepted = !hasStakes || (stakesAcceptedBy && stakesAcceptedBy.includes(playerId));
+
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-[360px] w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
+            className="max-w-[400px] w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
         >
             {/* Header / Room Code */}
             <div className="mb-6 relative flex flex-col items-center">
@@ -92,6 +100,13 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                                 )}
                             </div>
 
+                            {/* Agreed Status */}
+                            {hasStakes && stakesAcceptedBy?.includes(p.id) && (
+                                <div className="text-green-400" title="Setuju">
+                                    <span className="text-xs">✅</span>
+                                </div>
+                            )}
+
                             {/* Kick Button (Host only) */}
                             {isHost && p.id !== playerId && (
                                 <button
@@ -117,19 +132,63 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                 </div>
             </div>
 
+            {/* Stakes Input */}
+            <div className="mb-6 bg-white/5 p-4 rounded-xl border border-white/5">
+                <h3 className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest mb-2 flex items-center justify-center gap-2">
+                    <Crown size={12} />
+                    Hadiah / Taruhan
+                </h3>
+                {isHost ? (
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={stakes || ""}
+                            onChange={(e) => onChangeStakes?.(e.target.value)}
+                            placeholder="Contoh: Yang kalah traktir kopi ☕"
+                            className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-center text-white placeholder:text-gray-600 focus:outline-none focus:border-yellow-500/50 transition-colors"
+                        />
+                        <div className="absolute inset-x-0 -bottom-3 text-[9px] text-gray-500">
+                             Jika diubah, persetujuan akan di-reset.
+                        </div>
+                    </div>
+                ) : (
+                    <div className="text-sm font-medium text-white italic">
+                        "{stakes || "Belum ada taruhan..."}"
+                    </div>
+                )}
+
+                {/* Agreement Button */}
+                {hasStakes && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                        {!iAccepted && (
+                            <Button
+                                onClick={onAcceptStakes}
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-500 text-white font-bold animate-pulse shadow-lg shadow-green-900/20"
+                            >
+                                👍 SETUJU DENGAN TARUHAN
+                            </Button>
+                        )}
+                        <div className="text-[10px] text-gray-400 uppercase tracking-wider">
+                            {stakesAcceptedBy?.length || 0}/{players.length} Pemain Setuju
+                        </div>
+                    </div>
+                )}
+            </div>
+
             {/* Actions */}
             <div className="space-y-3">
                 {isHost ? (
                     <Button
                         onClick={() => startGame(roomId)}
-                        disabled={players.length < 2}
+                        disabled={players.length < 2 || !allAccepted}
                         className={`w-full py-6 text-lg font-bold shadow-xl transition-all ${
-                            players.length < 2
+                            players.length < 2 || !allAccepted
                                 ? "bg-gray-700 text-gray-400 cursor-not-allowed border border-white/5"
                                 : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border border-indigo-400/30 hover:shadow-indigo-500/20"
                         }`}
                     >
-                        {players.length < 2 ? "MENUNGGU PEMAIN..." : "⚔️ MULAI GAME"}
+                        {players.length < 2 ? "MENUNGGU PEMAIN..." : !allAccepted ? "MENUNGGU PERSETUJUAN..." : "⚔️ MULAI GAME"}
                     </Button>
                 ) : (
                     <div className="w-full py-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center gap-2 text-gray-400 animate-pulse text-xs font-medium uppercase tracking-wider">

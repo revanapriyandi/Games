@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { ref, set, get, child, push, onValue, update, remove } from "firebase/database";
+import { ref, set, get, child, push, onValue, update, remove, runTransaction } from "firebase/database";
 import type { Player, GameState, AIConfig } from "../types";
 import { AVATAR_ORDER, MAX_PLAYERS } from "../constants";
 import { generateRoomCode, generateRandomPortals } from "./utils";
@@ -105,6 +105,24 @@ export async function leaveRoom(roomId: string, playerId: string) {
       });
     }
   }
+}
+
+export async function updateStakes(roomId: string, stakes: string) {
+  const updates: Record<string, unknown> = {};
+  updates[`rooms/${roomId}/stakes`] = stakes;
+  updates[`rooms/${roomId}/stakesAcceptedBy`] = []; // Reset approvals on change
+  await update(ref(db), updates);
+}
+
+export async function acceptStakes(roomId: string, playerId: string) {
+    // using runTransaction to safely update the list
+    await runTransaction(ref(db, `rooms/${roomId}/stakesAcceptedBy`), (currentList: string[] | null) => {
+        const list = currentList || [];
+        if (!list.includes(playerId)) {
+            return [...list, playerId];
+        }
+        return list;
+    });
 }
 
 export async function kickPlayer(roomId: string, playerId: string) {

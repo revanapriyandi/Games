@@ -88,6 +88,8 @@ export interface GameState {
       type: 'earthquake' | 'wind' | 'fog';
       timestamp: number;
   } | null;
+  stakes?: string | null;
+  stakesAcceptedBy?: string[];
 }
 
 /** Response from Gemini for lobby setup */

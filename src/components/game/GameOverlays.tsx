@@ -127,6 +127,7 @@ export function GameOverlays({
                         currentPlayerId={playerId}
                         onReset={() => resetGame(roomId)}
                         onExit={onLeave}
+                        stakes={gameState.stakes}
                     />
                 )}
             </AnimatePresence>
