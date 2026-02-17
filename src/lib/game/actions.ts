@@ -9,6 +9,7 @@ import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
 import { generateRandomPortals, getNextTurnUpdates } from "./utils";
 import { calculateMovementOutcome } from "./movement";
+import { updateLeaderboard } from "../leaderboard";
 
 // Helper to append logs and sync with chat
 export function appendLogAndChat(
@@ -270,6 +271,13 @@ export async function rollDice(roomId: string, playerId: string) {
     updates[`rooms/${roomId}/winner`] = playerId;
     updates[`rooms/${roomId}/status`] = "finished";
     updates[`rooms/${roomId}/currentChallenge`] = null;
+
+    // Update Leaderboard
+    const winner = gameState.players[playerId];
+    if (winner) {
+      updateLeaderboard(winner).catch((err) => console.error("Leaderboard update failed:", err));
+    }
+
     await update(ref(db), updates);
   } else if (isChallenge) {
     // Challenge cell — works even if portal also exists on this cell

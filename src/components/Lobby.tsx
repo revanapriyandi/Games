@@ -8,7 +8,8 @@ import { AvatarSelector } from "./ui/AvatarSelector";
 import { THEME_PRESETS, getRandomName } from "../lib/constants";
 import { getAvatarUrl } from "../lib/avatar";
 import type { AIConfig } from "../lib/types";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles, X, Trophy } from "lucide-react";
+import { Leaderboard } from "./Leaderboard";
 
 interface LobbyProps {
     onJoin: (roomId: string, playerId: string) => void;
@@ -27,7 +28,7 @@ export function Lobby({ onJoin }: LobbyProps) {
     const [selectedPreset, setSelectedPreset] = useState("");
     const [customTheme, setCustomTheme] = useState("");
 
-    const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+    const [activeTab, setActiveTab] = useState<'create' | 'join' | 'leaderboard'>('create');
 
     const activeTheme = selectedPreset === "custom" ? customTheme.trim() : selectedPreset;
     const [showThemeModal, setShowThemeModal] = useState(false);
@@ -155,10 +156,10 @@ export function Lobby({ onJoin }: LobbyProps) {
                         </div>
 
                         {/* Tabs */}
-                        <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl mb-4">
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/40 rounded-xl mb-4">
                             <button
                                 onClick={() => setActiveTab('create')}
-                                className={`relative py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'create' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                className={`relative py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'create' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
                                     }`}
                             >
                                 {activeTab === 'create' && (
@@ -168,11 +169,11 @@ export function Lobby({ onJoin }: LobbyProps) {
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                <span className="relative z-10">Create Adventure</span>
+                                <span className="relative z-10">Create</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('join')}
-                                className={`relative py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'join' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                className={`relative py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'join' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
                                     }`}
                             >
                                 {activeTab === 'join' && (
@@ -182,7 +183,24 @@ export function Lobby({ onJoin }: LobbyProps) {
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
-                                <span className="relative z-10">Join Adventure</span>
+                                <span className="relative z-10">Join</span>
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('leaderboard')}
+                                className={`relative py-2.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === 'leaderboard' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                                    }`}
+                            >
+                                {activeTab === 'leaderboard' && (
+                                    <motion.div
+                                        layoutId="activeTab"
+                                        className="absolute inset-0 bg-yellow-600/50 rounded-lg"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                <span className="relative z-10 flex items-center justify-center gap-1">
+                                    <Trophy className="w-3 h-3 text-yellow-500" />
+                                    Rank
+                                </span>
                             </button>
                         </div>
 
@@ -229,7 +247,7 @@ export function Lobby({ onJoin }: LobbyProps) {
                                         )}
                                     </Button>
                                 </motion.div>
-                            ) : (
+                            ) : activeTab === 'join' ? (
                                 <motion.div
                                     key="join-tab"
                                     initial={{ opacity: 0, x: 20 }}
@@ -253,6 +271,15 @@ export function Lobby({ onJoin }: LobbyProps) {
                                     >
                                         JOIN ADVENTURE
                                     </Button>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="leaderboard-tab"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                >
+                                    <Leaderboard />
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -290,8 +317,8 @@ export function Lobby({ onJoin }: LobbyProps) {
                                                             if (t.value !== 'custom') setShowThemeModal(false);
                                                         }}
                                                         className={`relative p-3 rounded-xl border text-left transition-all group ${selectedPreset === t.value
-                                                                ? "bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
-                                                                : "bg-black/20 border-white/10 hover:bg-white/5 hover:border-white/20"
+                                                            ? "bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                                                            : "bg-black/20 border-white/10 hover:bg-white/5 hover:border-white/20"
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-3">

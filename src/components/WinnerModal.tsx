@@ -58,24 +58,24 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl">
             {/* Confetti effect for winner can be added here later */}
-            
+
             <motion.div
                 initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
                 animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                className="bg-gradient-to-br from-yellow-400 to-orange-500 p-1 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+                className="bg-linear-to-br from-yellow-400 to-orange-500 p-1 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
             >
                 <div className="bg-black/90 p-6 rounded-xl text-center flex flex-col items-center">
-                    
+
                     {/* WINNER SECTION */}
                     <div className="mb-8 relative">
-                        <motion.div 
+                        <motion.div
                             animate={{ rotate: [0, 10, -10, 0] }}
                             transition={{ duration: 2, repeat: Infinity }}
                             className="text-6xl absolute -top-10 -left-10 z-10"
                         >
                             👑
                         </motion.div>
-                        <motion.div 
+                        <motion.div
                             animate={{ rotate: [0, -10, 10, 0] }}
                             transition={{ duration: 2, repeat: Infinity, delay: 1 }}
                             className="text-6xl absolute -top-10 -right-10 z-10"
@@ -85,14 +85,14 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
 
                         <div className="relative">
                             <div className="absolute inset-0 bg-yellow-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
-                            <img 
-                                src={getAvatarImage(winner.avatar, 0)} 
-                                alt={winner.name} 
+                            <img
+                                src={getAvatarImage(winner.avatar, 0)}
+                                alt={winner.name}
                                 className="w-32 h-32 object-contain relative z-10 drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]"
                             />
                         </div>
 
-                        <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 mt-4 uppercase tracking-wider">
+                        <h3 className="text-3xl font-black text-transparent bg-clip-text bg-linear-to-r from-yellow-300 to-orange-400 mt-4 uppercase tracking-wider">
                             {isWinner ? "KAMU MENANG!" : `${winner.name} MENANG!`}
                         </h3>
                         <p className="text-gray-400 text-sm italic mt-1">
@@ -148,14 +148,14 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
                     )}
 
                     <div className="w-full space-y-3">
-                        <Button 
-                            onClick={onReset} 
-                            className="w-full bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-bold py-6 text-lg shadow-lg hover:scale-[1.02] transition-all"
+                        <Button
+                            onClick={onReset}
+                            className="w-full bg-linear-to-r from-yellow-600 to-orange-600 hover:from-yellow-500 hover:to-orange-500 text-white font-bold py-6 text-lg shadow-lg hover:scale-[1.02] transition-all"
                         >
                             🔄 Main Lagi
                         </Button>
-                        <Button 
-                            onClick={onExit} 
+                        <Button
+                            onClick={onExit}
                             variant="ghost"
                             className="w-full text-red-400 hover:text-red-300 hover:bg-red-900/20"
                         >
