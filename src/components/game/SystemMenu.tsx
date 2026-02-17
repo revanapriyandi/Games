@@ -13,6 +13,7 @@ interface SystemMenuProps {
     // Chat
     onToggleChat: () => void;
     isChatOpen: boolean;
+    themeName?: string;
 }
 
 export function SystemMenu({
@@ -24,6 +25,7 @@ export function SystemMenu({
     toggleMute,
     onToggleChat,
     isChatOpen,
+    themeName,
 }: SystemMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -95,7 +97,17 @@ export function SystemMenu({
                         {/* Room Info */}
                         <div className="px-4 py-3 border-b border-white/10">
                             <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Room ID</div>
-                            <div className="text-xs font-mono text-white select-all">{roomId}</div>
+                            <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Room ID</div>
+                            <div className="text-xs font-mono text-white select-all mb-2">{roomId}</div>
+                            
+                            {themeName && (
+                                <>
+                                    <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Theme</div>
+                                    <div className="text-xs text-purple-300 font-medium truncate flex items-center gap-1">
+                                        <span>✨</span> {themeName}
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Voice Status */}

@@ -37,6 +37,21 @@ export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex
                 {cellNum}
             </span>
 
+            {/* Start Label */}
+            {cellNum === 1 && (
+                <div className="absolute inset-x-0 bottom-1 flex justify-center opacity-80 pointer-events-none">
+                    <span className="text-[6px] md:text-[8px] font-black tracking-widest text-green-200 drop-shadow-md bg-green-900/40 px-1 rounded">START</span>
+                </div>
+            )}
+
+            {/* Finish Label & Crown */}
+            {cellNum === 100 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span className="text-xl md:text-3xl filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] animate-pulse">👑</span>
+                    <span className="text-[6px] md:text-[8px] font-black tracking-widest text-yellow-100 drop-shadow-md bg-yellow-900/40 px-1 rounded -mt-1">FINISH</span>
+                </div>
+            )}
+
             {isChallenge && !isLadder && !isSnake && (
                 <span className="absolute top-0 right-0 text-[6px] md:text-[8px] leading-none select-none opacity-70">⚡</span>
             )}

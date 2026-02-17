@@ -107,6 +107,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     toggleMute={toggleMute}
                     onToggleChat={() => setIsChatOpen(!isChatOpen)}
                     isChatOpen={isChatOpen}
+                    themeName={gameState.aiConfig?.theme}
                 />
                 <GameWaiting
                     roomId={roomId}
@@ -143,6 +144,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 toggleMute={toggleMute}
                 onToggleChat={() => setIsChatOpen(!isChatOpen)}
                 isChatOpen={isChatOpen}
+                themeName={gameState.aiConfig?.theme}
             />
 
             {/* Stakes Notification Toast */}
@@ -155,15 +157,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 </div>
             )}
 
-            {/* Theme badge */}
-            {gameState.aiConfig && (
-                <div className="fixed top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-                    <div className="px-5 py-1.5 rounded-full bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border border-purple-500/30 text-[10px] md:text-xs text-purple-200 font-bold shadow-lg backdrop-blur-md flex items-center gap-2">
-                        <span className="animate-pulse">✨</span> 
-                        <span className="uppercase tracking-wider max-w-[200px] truncate">{gameState.aiConfig.theme}</span>
-                    </div>
-                </div>
-            )}
+            {/* Theme badge converted to inside settings */}\n
 
             {/* Room ID badge */}
             <div className="fixed top-3 right-3 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 select-all">
