@@ -20,6 +20,7 @@ export async function createRoom(playerName: string, aiConfig?: AIConfig) {
     avatar: AVATAR_ORDER[0],
     position: 0,
     isHost: true,
+    giveUpCount: 0,
   };
 
   const initialGameState: GameState = {
@@ -69,6 +70,7 @@ export async function joinRoom(roomId: string, playerName: string) {
     avatar,
     position: 0,
     isHost: false,
+    giveUpCount: 0,
   };
 
   await set(ref(db, `rooms/${roomId}/players/${playerId}`), newPlayer);

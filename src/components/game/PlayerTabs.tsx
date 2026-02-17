@@ -50,6 +50,11 @@ export function PlayerTabs({ players, currentTurnIndex, aiConfig }: PlayerTabsPr
                                         <span className="text-[10px] text-yellow-300 font-mono bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
                                             Petak #{p.position || 1}
                                         </span>
+                                        {p.giveUpCount && p.giveUpCount > 0 ? (
+                                            <span className="text-[10px] text-red-300 font-mono bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                                                🏳️ x {p.giveUpCount}
+                                            </span>
+                                        ) : null}
                                         {isActive && (
                                             <span className="text-[9px] text-green-400 font-bold animate-pulse">🎯 GILIRAN</span>
                                         )}

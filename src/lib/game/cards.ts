@@ -51,11 +51,11 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     case 'curse_back': {
       if (!targetId || !gameState.players[targetId]) return;
       const target = gameState.players[targetId];
-      const newPos = Math.max(1, (target.position || 1) - 5);
+      const newPos = Math.max(1, (target.position || 1) - 3);
       updates[`rooms/${roomId}/players/${targetId}/position`] = newPos;
       effect.targetId = targetId;
       effect.targetName = target.name;
-      newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 5 langkah!`);
+      newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
       break;
     }
     case 'skip_target': {
@@ -74,9 +74,9 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
     }
     case 'teleport': {
       const currentPos = player.position || 1;
-      const newPos = Math.min(99, currentPos + 10);
+      const newPos = Math.min(99, currentPos + 5);
       updates[`rooms/${roomId}/players/${playerId}/position`] = newPos;
-      newLogs.push(`🌀 ${player.name} teleportasi maju 10 langkah! (${currentPos} → ${newPos})`);
+      newLogs.push(`🌀 ${player.name} teleportasi maju 5 langkah! (${currentPos} → ${newPos})`);
       break;
     }
     case 'shield': {

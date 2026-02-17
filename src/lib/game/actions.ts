@@ -103,6 +103,9 @@ export async function rollDice(roomId: string, playerId: string) {
     updates[`rooms/${roomId}/winner`] = playerId;
     updates[`rooms/${roomId}/status`] = "finished";
     updates[`rooms/${roomId}/currentChallenge`] = null;
+    updates[`rooms/${roomId}/isRolling`] = false;
+    updates[`rooms/${roomId}/lastRoll`] = roll;
+    updates[`rooms/${roomId}/players/${playerId}/position`] = 100;
     await update(ref(db), updates);
   } else if (isChallenge && !hasPortal) {
     // Challenge cell
