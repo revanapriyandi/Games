@@ -8,7 +8,7 @@ export interface TreasureCard {
   name: string;
   emoji: string;
   description: string;
-  effectType: 'curse_back' | 'skip_target' | 'double_dice' | 'teleport' | 'shield' | 'steal_card' | 'swap_position' | 'extra_turn' | 'role_ability';
+  effectType: 'curse_back' | 'skip_target' | 'double_dice' | 'teleport' | 'shield' | 'steal_card' | 'swap_position' | 'extra_turn' | 'role_ability' | 'rocket' | 'bomb' | 'magic_dice' | 'magnet';
   targetType: 'self' | 'other';
 }
 
@@ -37,6 +37,7 @@ export interface Player {
   cards?: TreasureCard[];
   hasShield?: boolean;
   doubleDice?: boolean;
+  magicDice?: boolean;
   extraTurn?: boolean;
   giveUpCount?: number;
   chatMessage?: string;

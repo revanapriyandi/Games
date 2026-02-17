@@ -133,8 +133,15 @@ export async function rollDice(roomId: string, playerId: string) {
   // --- Calculate outcome ---
   let roll = Math.floor(Math.random() * 6) + 1;
 
-  // Apply Double Dice effect
-  if (player.doubleDice) {
+  // Apply Magic Dice effect (Guaranteed 6)
+  if (player.magicDice) {
+      roll = 6;
+      await update(ref(db), {
+          [`rooms/${roomId}/players/${playerId}/magicDice`]: null,
+      });
+  }
+  // Apply Double Dice effect (if not magic dice, or maybe combine? Magic Dice overrides double?)
+  else if (player.doubleDice) {
     roll = Math.min(roll * 2, 12);
     await update(ref(db), {
       [`rooms/${roomId}/players/${playerId}/doubleDice`]: null,
@@ -352,6 +359,7 @@ export async function resetGame(roomId: string) {
       updates[`rooms/${roomId}/players/${pid}/cards`] = null;
       updates[`rooms/${roomId}/players/${pid}/hasShield`] = null;
       updates[`rooms/${roomId}/players/${pid}/doubleDice`] = null;
+      updates[`rooms/${roomId}/players/${pid}/magicDice`] = null;
       updates[`rooms/${roomId}/players/${pid}/extraTurn`] = null;
       updates[`rooms/${roomId}/players/${pid}/skippedTurns`] = null;
       updates[`rooms/${roomId}/players/${pid}/role`] = null; // Reset role

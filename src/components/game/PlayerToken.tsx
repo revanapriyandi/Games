@@ -134,14 +134,17 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
             </div>
 
             {/* Card effect animation on target */}
+            {/* Card effect animation on target */}
             {activeCardEffect?.targetId === player.id && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0 }}
-                    animate={activeCardEffect.isBlocked
-                        ? { opacity: 1, scale: [0, 1.2, 1], x: [0, -5, 5, -5, 5, 0] } // Shake animation for blocked
-                        : { opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] } // Normal jump animation
+                    animate={
+                        activeCardEffect.isBlocked ? { opacity: 1, scale: [0, 1.2, 1], x: [0, -5, 5, -5, 5, 0] } :
+                        activeCardEffect.effectType === 'bomb' ? { opacity: [0, 1, 1, 0], y: [-50, 0, 0, 0], scale: [0.5, 1, 1.2, 2] } : // Bomb drop & explode
+                        activeCardEffect.effectType === 'magnet' ? { opacity: 1, scale: [0, 1, 1], x: [0, -10, 10, -10, 10, 0] } : // Magnet shake
+                        { opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] } // Default jump
                     }
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.8 }}
                     className="absolute -top-5 text-2xl z-40 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
                 >
                     {activeCardEffect.emoji}
@@ -152,8 +155,12 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
             {activeCardEffect?.userId === player.id && !activeCardEffect?.targetId && (
                 <motion.div
                     initial={{ opacity: 0, scale: 0 }}
-                    animate={{ opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] }}
-                    transition={{ duration: 0.6 }}
+                    animate={
+                        activeCardEffect.effectType === 'rocket' ? { opacity: [0, 1, 1, 0], y: [0, -20, -100], x: [0, 10, 50], scale: [0.5, 1, 1.5] } : // Rocket fly
+                        activeCardEffect.effectType === 'magic_dice' ? { opacity: 1, rotate: [0, 360], scale: [0, 1.5, 1] } : // Dice spin
+                        { opacity: 1, scale: [0, 1.5, 1], y: [0, -15, -10] } // Default jump
+                    }
+                    transition={{ duration: 0.8 }}
                     className="absolute -top-5 text-2xl z-40 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)]"
                 >
                     {activeCardEffect.emoji}
