@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { Player, ActiveCardEffect } from "../lib/types";
 import { SNAKES_LADDERS } from "../lib/game";
 import { CHALLENGE_CELLS, TREASURE_CELLS } from "../lib/constants";
@@ -18,6 +19,26 @@ interface BoardProps {
 export function Board({ players, displayPositions, thinkingPlayerId, activePortalCell, portals, activeCardEffect }: BoardProps) {
     const cells = Array.from({ length: 100 }, (_, i) => 100 - i);
     const activePortals = portals || SNAKES_LADDERS;
+
+    // Internal state for smooth animation
+    const [animatedPositions, setAnimatedPositions] = useState<Record<string, number>>({});
+
+    // Sync animated positions with displayPositions (or raw player positions)
+    useEffect(() => {
+        // We use displayPositions from parent (which likely comes from useGameRoom hook handling step-by-step)
+        // BUT if displayPositions is missing, fallback to direct player.position?
+        // Actually, the hook is supposed to handle the step-by-step animation.
+        // If the user says "character jumps far then walks", maybe the hook is updating too fast
+        // OR the initial render is showing the final position immediately.
+
+        if (displayPositions) {
+            setAnimatedPositions(displayPositions);
+        } else {
+             const positions: Record<string, number> = {};
+             players.forEach(p => { positions[p.id] = p.position || 0; });
+             setAnimatedPositions(positions);
+        }
+    }, [displayPositions, players]);
 
     // Separate portals into ladders (up) and snakes (down)
     const portalList = Object.entries(activePortals).map(([from, to]) => ({
@@ -85,7 +106,7 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
                     key={player.id}
                     player={player}
                     playerIndex={playerIndex}
-                    displayPosition={displayPositions?.[player.id]}
+                    displayPosition={animatedPositions[player.id] ?? player.position}
                     thinkingPlayerId={thinkingPlayerId}
                     activeCardEffect={activeCardEffect}
                 />

@@ -1,230 +1,36 @@
-<div align="center">
-  <img src="public/logo.png" alt="Games Logo" width="200"/>
-  
-  # 🎮 Ular Tangga Seru
-  
-  **Permainan Ular Tangga interaktif yang dibangun dengan React, TypeScript, dan Vite**
-  
-  [![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-success?style=for-the-badge&logo=vercel)](https://ular-tangga-seru.vercel.app/)
-  [![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
-  [![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-  
-  ### 🚀 [Live Demo](https://ular-tangga-seru.vercel.app/) | [Documentation](#) | [Report Bug](#)
-  
-</div>
+# AI Board Game Adventure
 
----
+A real-time multiplayer board game powered by React, Firebase, and AI. Navigate snakes, ladders, challenges, and card battles with your friends!
 
-## 🎲 Tentang Ular Tangga Seru
+![Lobby Preview](public/screenshots/lobby_v2.png)
 
-Ular Tangga Seru adalah permainan klasik ular tangga yang dibawa ke era digital dengan tampilan modern dan fitur interaktif. Nikmati pengalaman bermain yang seru bersama teman atau keluarga!
+## New Features (v2.0)
 
-## 📸 Screenshots
+### 🎨 Modern Lobby & Avatar Selector
+- **Custom Avatars:** Choose your unique look using the new **Avatar Selector**, powered by [DiceBear](https://dicebear.com/).
+  - Search for your hero name to generate a unique avatar seed.
+  - Randomize to find something that fits your style.
+  - Supports multiple styles including Adventurer, Robot, and Emoji.
+- **Sleek UI:** A completely redesigned lobby with a dark, modern aesthetic, glassmorphism effects, and smoother animations using Framer Motion.
 
-> 💡 **Coba langsung:** [https://ular-tangga-seru.vercel.app/](https://ular-tangga-seru.vercel.app/)
+### 🐛 Gameplay Improvements & Fixes
+- **Double Dice Fix:** The "Double Dice" effect now correctly displays the halved value on the dice (e.g., rolling a 12 shows a 6) with a "x2" indicator, matching the movement logic.
+- **Exit Button:** Restored the missing "KELUAR" (Exit) button in the game header, allowing players to leave the room easily.
+- **Smoother Movement:** Character movement animations have been refactored to better handle Snakes & Ladders, preventing "backward walking" visual glitches.
 
-<div align="center">
+![Gameplay Preview](public/screenshots/gameplay_v2.png)
 
-### 🏠 Halaman Utama
-![Home Page](public/screenshots/home.png)
-*Tampilan halaman utama dengan menu permainan*
+## Tech Stack
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, Framer Motion
+- **Backend:** Firebase Realtime Database
+- **AI:** Google Gemini (for generating challenges and themes)
 
-### 🎯 Gameplay
-![Gameplay](public/screenshots/gameplay.png)
-*Papan permainan ular tangga yang interaktif*
+## getting Started
 
-### 🏆 Leaderboard
-![Leaderboard](public/screenshots/leaderboard.png)
-*Sistem peringkat pemain terbaik*
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Start the development server: `npm run dev`
 
-### 📱 Responsive Design
-<img src="public/screenshots/mobile.png" alt="Mobile View" width="300"/>
+## License
 
-*Optimal di semua perangkat*
-
-</div>
-
----
-
-## ✨ Fitur Utama
-
-- 🎲 **Papan Permainan Interaktif** - Animasi yang smooth dan menarik
-- 👥 **Multiplayer Mode** - Main bersama teman (2-4 pemain)
-- 🏆 **Leaderboard System** - Catat skor tertinggi Anda
-- 🎨 **UI/UX Modern** - Desain colorful dan user-friendly
-- 📱 **Fully Responsive** - Main di HP, tablet, atau desktop
-- 🔥 **Real-time Updates** - Sinkronisasi data dengan Firebase
-- 🎵 **Sound Effects** - Efek suara yang menyenangkan
-- 💾 **Auto Save** - Progress tersimpan otomatis
-
-## 🎮 Cara Bermain
-
-1. **Akses game** di [ular-tangga-seru.vercel.app](https://ular-tangga-seru.vercel.app/)
-2. **Masukkan nama pemain** (2-4 pemain)
-3. **Klik dadu** untuk melempar
-4. **Ikuti aturan**:
-   - 🪜 Tangga = naik ke atas
-   - 🐍 Ular = turun ke bawah
-   - 🎯 Pertama sampai kotak 100 = MENANG!
-
-## 🛠️ Teknologi
-
-| Teknologi | Kegunaan |
-|-----------|----------|
-| **React** | Library UI untuk membangun interface |
-| **TypeScript** | Type safety untuk kode yang robust |
-| **Vite** | Build tool super cepat |
-| **Firebase** | Backend & Real-time Database |
-| **Firestore** | Menyimpan data pemain & skor |
-| **Vercel** | Hosting & deployment |
-| **ESLint** | Code quality & linting |
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Node.js (v16+)
-- npm atau yarn
-- Git
-
-### Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/revanapriyandi/Games.git
-cd Games
-
-# Install dependencies
-npm install
-
-# Setup environment variables
-cp .env.example .env
-# Edit .env dengan Firebase config Anda
-
-# Run development server
-npm run dev
-
-# Buka http://localhost:5173
-```
-
-### Build untuk Production
-
-```bash
-# Build aplikasi
-npm run build
-
-# Preview production build
-npm run preview
-
-# Deploy ke Vercel (opsional)
-vercel
-```
-
-## 📦 Scripts
-
-| Command | Deskripsi |
-|---------|-----------|
-| `npm run dev` | Jalankan development server |
-| `npm run build` | Build untuk production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Check code quality |
-
-## 🔥 Firebase Configuration
-
-1. Buat project di [Firebase Console](https://console.firebase.google.com/)
-2. Enable **Firestore Database**
-3. Enable **Authentication** (Email/Password atau Google)
-4. Copy konfigurasi ke `.env`:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-```
-
-## 📁 Struktur Project
-
-```
-Games/
-├── 📂 public/
-│   ├── logo.png
-│   ├── screenshots/
-│   └── assets/
-├── 📂 src/
-│   ├── 📂 components/
-│   │   ├── Board.tsx       # Komponen papan permainan
-│   │   ├── Dice.tsx        # Komponen dadu
-│   │   ├── Player.tsx      # Komponen pemain
-│   │   └── ...
-│   ├── 📂 pages/
-│   │   ├── Home.tsx
-│   │   ├── Game.tsx
-│   │   └── Leaderboard.tsx
-│   ├── 📂 services/
-│   │   └── firebase.ts     # Firebase config
-│   ├── 📂 hooks/
-│   ├── 📂 utils/
-│   └── App.tsx
-├── firebase.json
-├── firestore.rules
-├── vite.config.ts
-└── package.json
-```
-
-## 🎯 Roadmap
-
-- [x] Papan permainan dasar
-- [x] Multiplayer support
-- [x] Firebase integration
-- [x] Deployment ke Vercel
-- [ ] Mode single player vs AI
-- [ ] Custom themes
-- [ ] Sound effects & music
-- [ ] Achievements & badges
-- [ ] Room system untuk multiplayer online
-- [ ] Chat antar pemain
-- [ ] Tournament mode
-
-## 🐛 Known Issues
-
-Temukan bug? [Laporkan di sini](https://github.com/revanapriyandi/Games/issues)
-
-## 🤝 Contributing
-
-Contributions are welcome! 
-
-1. Fork repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📄 License
-
-MIT License - lihat [LICENSE](LICENSE) untuk detail.
-
-## 👤 Author
-
-**Revan Apriyandi**
-
-- GitHub: [@revanapriyandi](https://github.com/revanapriyandi)
-- Website: [ular-tangga-seru.vercel.app](https://ular-tangga-seru.vercel.app/)
-
-## ⭐ Support
-
-Jika project ini bermanfaat, jangan lupa kasih ⭐ ya!
-
----
-
-<div align="center">
-  
-**Dibuat dengan ❤️ menggunakan React + TypeScript + Vite**
-
-[🎮 Main Sekarang](https://ular-tangga-seru.vercel.app/) • [📖 Dokumentasi](#) • [🐛 Report Bug](https://github.com/revanapriyandi/Games/issues)
-
-</div>
+MIT
