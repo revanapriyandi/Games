@@ -125,7 +125,7 @@ export function useGameRoom({ roomId, playerId, onLeave }: UseGameRoomProps) {
 
             setDisplayPositions(prev => ({ ...prev, [pid]: current }));
 
-        }, 150); // Faster animation (150ms instead of 300ms)
+        }, 250); // Step animation speed (ms per cell)
 
     }, [finishAnimation]);
 

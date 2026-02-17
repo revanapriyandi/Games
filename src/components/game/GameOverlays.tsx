@@ -69,7 +69,7 @@ export function GameOverlays({
         <>
             {/* Challenge Overlay */}
             <AnimatePresence>
-                {!!gameState.currentChallenge && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !isCompletingChallenge && !thinkingPlayerId && (
+                {!!gameState.currentChallenge && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !isCompletingChallenge && !thinkingPlayerId && !showPortal && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
                         <ChallengeModal
                             isOpen={true}
@@ -87,7 +87,7 @@ export function GameOverlays({
 
             {/* Treasure Modal */}
             <AnimatePresence>
-                {!!gameState.currentTreasure && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !thinkingPlayerId && (
+                {!!gameState.currentTreasure && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !thinkingPlayerId && !showPortal && (
                     <TreasureModal
                         isOpen={true}
                         card={gameState.currentTreasure}
@@ -100,7 +100,7 @@ export function GameOverlays({
 
             {/* Role Selection Overlay */}
             <AnimatePresence>
-                {!!gameState.currentRoleSelection && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !thinkingPlayerId && activePlayer?.id === playerId && (
+                {!!gameState.currentRoleSelection && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !thinkingPlayerId && !showPortal && activePlayer?.id === playerId && (
                     <RoleSelectionModal
                         roleIds={gameState.currentRoleSelection}
                         onSelect={(roleId) => selectRole(roomId, playerId, roleId)}

@@ -10,6 +10,7 @@ export interface MovementResult {
   shieldUsed?: boolean;
   ninjaDodged?: boolean;
   builderBoost?: boolean;
+  triggeredAbility?: 'ninja' | 'jester' | 'builder';
   logs: string[];
 }
 
@@ -37,6 +38,7 @@ export function calculateMovementOutcome(
   let shieldBlocked = false;
   let ninjaDodged = false;
   let builderBoost = false;
+  let triggeredAbility: 'ninja' | 'jester' | 'builder' | undefined;
 
   if (hasPortal) {
       if (destination < newPosition) {
@@ -49,25 +51,39 @@ export function calculateMovementOutcome(
               ninjaDodged = true;
               logs.push(`🥷 ${player.name} (Ninja) menghindari ular dengan lincah!`);
               destination = newPosition; // Stay at top
+              triggeredAbility = 'ninja';
+          } else if (player.role === 'jester' && Math.random() > 0.5) {
+              // Jester Ability: 50% Chance to turn Snake into Trampoline!
+              const dropAmount = newPosition - destination;
+              const newDest = Math.min(100, newPosition + dropAmount);
+              destination = newDest;
+              logs.push(`🎭 ${player.name} (Jester) mengubah Ular menjadi Trampolin! Loncat ke kotak ${destination}!`);
+              triggeredAbility = 'jester';
+          } else {
+              logs.push(`🐍 ${player.name} digigit ular! Turun ke kotak ${destination}.`);
           }
       } else if (destination > newPosition) {
           // Ladder (Bonus)
           if (player.role === 'builder') {
-               const originalDest = destination;
-               // Builder adds 2 steps to the ladder climb
-               const boostedDest = Math.min(100, destination + 2);
-               if (boostedDest > originalDest) {
+               // Builder adds 3 steps to the ladder climb
+               const boostedDest = Math.min(100, destination + 3);
+               if (boostedDest > destination) {
                    builderBoost = true;
                    destination = boostedDest;
                    logs.push(`🏗️ ${player.name} (Builder) memperpanjang tangga!`);
+                   triggeredAbility = 'builder';
+               } else {
+                   logs.push(`🪜 ${player.name} naik tangga ke kotak ${destination}!`);
                }
+          } else {
+              logs.push(`🪜 ${player.name} naik tangga ke kotak ${destination}!`);
           }
       }
   }
 
   return {
       finalPosition: destination,
-      portal: (hasPortal && !shieldBlocked && !ninjaDodged) ? {
+      portal: (hasPortal && !shieldBlocked && !ninjaDodged && destination !== newPosition) ? {
           from: newPosition,
           to: destination,
           type: destination > newPosition ? 'ladder' : 'snake'
@@ -75,6 +91,7 @@ export function calculateMovementOutcome(
       shieldUsed: shieldBlocked,
       ninjaDodged,
       builderBoost,
+      triggeredAbility,
       logs
   };
 }

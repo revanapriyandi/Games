@@ -4,18 +4,18 @@ import { playCardUseSound } from "../lib/sounds";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
 import { useVoiceChat } from "../hooks/useVoiceChat";
-import { VoiceControl } from "./game/VoiceControl";
-import { GameHeader } from "./game/GameHeader";
+import { SystemMenu } from "./game/SystemMenu";
 import { GameWaiting } from "./game/GameWaiting";
 import { PlayerTabs } from "./game/PlayerTabs";
 import { GameControls } from "./game/GameControls";
-import { RobloxChat } from "./game/RobloxChat";
+import { GameChat } from "./game/GameChat";
 import { CardInventory } from "./game/CardInventory";
 import { TargetPicker } from "./game/TargetPicker";
 import { TurnAnnouncement } from "./game/TurnAnnouncement";
 import { GameLog } from "./game/GameLog";
 import { JoinNotification } from "./game/JoinNotification";
 import { GameOverlays } from "./game/GameOverlays";
+
 
 interface GameRoomProps {
     roomId: string;
@@ -45,6 +45,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const handleCopy = () => {
         navigator.clipboard.writeText(roomId);
@@ -60,18 +61,20 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const isTurn = gameState.status === "playing" && playersList[gameState.currentTurnIndex]?.id === playerId;
     const activePlayer = playersList[gameState.currentTurnIndex];
 
-    // Disable controls if: not turn, challenge pending, animating, rolling, or deciding on card target?
-    // Actually card targeting is separate modal.
     const disabled = !isTurn || !!gameState.currentChallenge || isAnimating || !!gameState.isRolling;
 
     if (gameState.status === "waiting") {
         return (
             <>
-                <VoiceControl
-                    isJoined={isJoined}
-                    isMuted={isMuted}
+                <SystemMenu
+                    roomId={roomId}
+                    onLeave={onLeave}
+                    isVoiceJoined={isJoined}
+                    isVoiceMuted={isMuted}
                     toggleVoice={toggleVoice}
                     toggleMute={toggleMute}
+                    onToggleChat={() => setIsChatOpen(!isChatOpen)}
+                    isChatOpen={isChatOpen}
                 />
                 <GameWaiting
                     roomId={roomId}
@@ -82,24 +85,44 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     onCopy={handleCopy}
                     copied={copied}
                 />
-                <RobloxChat roomId={roomId} playerId={playerId} chatMessages={gameState.chat} />
+                <GameChat
+                    roomId={roomId}
+                    playerId={playerId}
+                    chatMessages={gameState.chat}
+                    isOpen={isChatOpen}
+                    onToggle={() => setIsChatOpen(!isChatOpen)}
+                />
             </>
         );
     }
 
     return (
         <div className="w-full h-screen flex flex-col items-center justify-center relative overflow-y-auto bg-slate-900/50">
-            <VoiceControl
-                isJoined={isJoined}
-                isMuted={isMuted}
-                toggleVoice={toggleVoice}
-                toggleMute={toggleMute}
-            />
-            <GameHeader
+            <SystemMenu
                 roomId={roomId}
                 onLeave={onLeave}
-                aiConfig={gameState.aiConfig}
+                isVoiceJoined={isJoined}
+                isVoiceMuted={isMuted}
+                toggleVoice={toggleVoice}
+                toggleMute={toggleMute}
+                onToggleChat={() => setIsChatOpen(!isChatOpen)}
+                isChatOpen={isChatOpen}
             />
+
+            {/* Theme badge */}
+            {gameState.aiConfig && (
+                <div className="fixed top-14 left-3 z-30 pointer-events-none">
+                    <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-900/80 to-indigo-900/80 border border-purple-500/40 text-[10px] md:text-xs text-purple-200 font-bold shadow-[0_4px_15px_rgba(168,85,247,0.3)] backdrop-blur-md flex items-center gap-2">
+                        <span className="animate-pulse">✨</span> 
+                        <span className="uppercase tracking-wider">{gameState.aiConfig.theme}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Room ID badge */}
+            <div className="fixed top-3 right-3 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 select-all">
+                ROOM: <span className="text-white font-bold">{roomId}</span>
+            </div>
             
             <PlayerTabs
                 players={playersList}
@@ -126,7 +149,13 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 showResult={showResult}
             />
 
-            <RobloxChat roomId={roomId} playerId={playerId} chatMessages={gameState.chat} />
+            <GameChat
+                roomId={roomId}
+                playerId={playerId}
+                chatMessages={gameState.chat}
+                isOpen={isChatOpen}
+                onToggle={() => setIsChatOpen(!isChatOpen)}
+            />
 
             {player && (
                 <CardInventory

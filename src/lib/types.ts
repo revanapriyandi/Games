@@ -8,7 +8,7 @@ export interface TreasureCard {
   name: string;
   emoji: string;
   description: string;
-  effectType: 'curse_back' | 'skip_target' | 'double_dice' | 'teleport' | 'shield' | 'steal_card' | 'swap_position' | 'extra_turn';
+  effectType: 'curse_back' | 'skip_target' | 'double_dice' | 'teleport' | 'shield' | 'steal_card' | 'swap_position' | 'extra_turn' | 'role_ability';
   targetType: 'self' | 'other';
 }
 

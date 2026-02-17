@@ -23,11 +23,11 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
             className="max-w-[360px] w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
         >
             {/* Header / Room Code */}
-            <div className="mb-6 relative">
-                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold tracking-widest uppercase border border-yellow-500/20 rounded-full">
+            <div className="mb-6 relative flex flex-col items-center">
+                 <div className="-mt-3 mb-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold tracking-widest uppercase border border-yellow-500/20 rounded-full">
                     Lobby Area
                  </div>
-                 <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2 mt-4">KODE RUANG</h2>
+                 <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">KODE RUANG</h2>
                  <button
                     onClick={onCopy}
                     className="group relative inline-flex items-center justify-center gap-3 px-6 py-3 bg-black/50 hover:bg-black/70 rounded-xl border border-white/10 hover:border-white/30 transition-all w-full active:scale-95"
@@ -66,13 +66,13 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             key={p.id}
                             className={`relative flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
                                 p.id === playerId
-                                    ? "bg-indigo-900/20 border-indigo-500/30 shadow-[inset_0_0_10px_rgba(99,102,241,0.1)]"
+                                    ? "bg-indigo-950/60 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
                                     : "bg-white/5 border-white/5 hover:bg-white/10"
                             }`}
                         >
                             <div className="relative">
                                 <img
-                                    src={getAvatarImage(p.avatar, idx)}
+                                    src={p.customAvatarUrl || getAvatarImage(p.avatar, idx)}
                                     alt={p.name}
                                     className="w-9 h-9 object-contain drop-shadow-md"
                                 />

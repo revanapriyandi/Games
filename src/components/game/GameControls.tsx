@@ -17,7 +17,7 @@ export function GameControls({ gameState, handleRoll, disabled, showResult }: Ga
             dragElastic={0.1}
             whileDrag={{ scale: 1.15, cursor: "grabbing" }}
             style={{ cursor: "grab" }}
-            className="fixed right-6 bottom-8 md:right-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-50 touch-none"
+            className="fixed right-6 bottom-8 md:right-10 md:bottom-auto md:top-1/2 md:-translate-y-1/2 z-[60] touch-none"
         >
             <Dice
                 rolling={!!gameState.isRolling}

@@ -2,7 +2,7 @@
 // Role Definitions
 // ============================
 
-export type RoleType = 'ninja' | 'tank' | 'mage' | 'builder';
+export type RoleType = 'ninja' | 'tank' | 'mage' | 'builder' | 'jester' | 'warlord';
 
 export interface Role {
     id: RoleType;
@@ -32,14 +32,28 @@ export const ROLES: Role[] = [
         name: 'Mage',
         emoji: '🧙‍♂️',
         description: 'Ahli sihir yang licik!',
-        ability: 'Mulai game dengan 1 kartu acak gratis.'
+        ability: 'Mulai game dengan 2 kartu acak gratis.'
     },
     {
         id: 'builder',
         name: 'Builder',
         emoji: '🏗️',
         description: 'Ahli konstruksi!',
-        ability: 'Naik tangga dapat bonus +2 langkah tambahan.'
+        ability: 'Naik tangga dapat bonus +3 langkah tambahan.'
+    },
+    {
+        id: 'jester',
+        name: 'Jester',
+        emoji: '🎭',
+        description: 'Hidden Role: Penguasa Kekacauan!',
+        ability: '50% peluang mengubah Ular menjadi Tangga.'
+    },
+    {
+        id: 'warlord',
+        name: 'Warlord',
+        emoji: '⚔️',
+        description: 'Powerful Role: Sang Penakluk!',
+        ability: 'Mulai dengan Perisai & Pencuri Kartu.'
     }
 ];
 

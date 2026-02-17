@@ -8,6 +8,7 @@ import { AvatarSelector } from "./ui/AvatarSelector";
 import { THEME_PRESETS, getRandomName } from "../lib/constants";
 import { getAvatarUrl } from "../lib/avatar";
 import type { AIConfig } from "../lib/types";
+import { Sparkles, X } from "lucide-react";
 
 interface LobbyProps {
   onJoin: (roomId: string, playerId: string) => void;
@@ -26,7 +27,17 @@ export function Lobby({ onJoin }: LobbyProps) {
   const [selectedPreset, setSelectedPreset] = useState("");
   const [customTheme, setCustomTheme] = useState("");
 
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+  
   const activeTheme = selectedPreset === "custom" ? customTheme.trim() : selectedPreset;
+  const [showThemeModal, setShowThemeModal] = useState(false);
+
+  // Helper to get label for active theme
+  const getActiveThemeLabel = () => {
+      const preset = THEME_PRESETS.find(p => p.value === selectedPreset);
+      if (selectedPreset === 'custom') return customTheme || "Custom Theme";
+      return preset ? preset.label : "Pilih Tema...";
+  };
 
   const handleCreate = async () => {
     if (!name) return setError("Masukkan nama kamu");
@@ -143,43 +154,195 @@ export function Lobby({ onJoin }: LobbyProps) {
               />
             </div>
 
-            {/* AI Theme */}
-             <div className="space-y-2 pt-2 border-t border-white/5">
-                <label className="text-xs font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-2">
-                    <span>✨ Adventure Theme</span>
-                    <span className="bg-purple-500/20 text-purple-300 text-[10px] px-2 py-0.5 rounded-full">AI Powered</span>
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                    <select
-                        value={selectedPreset}
-                        onChange={(e) => setSelectedPreset(e.target.value)}
-                        className="w-full bg-black/20 border border-white/10 text-gray-300 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-500/40 appearance-none cursor-pointer hover:bg-black/30 transition-colors"
-                    >
-                        {THEME_PRESETS.map((t) => (
-                            <option key={t.value} value={t.value} className="bg-gray-900 text-gray-300">
-                                {t.label}
-                            </option>
-                        ))}
-                    </select>
-                    <AnimatePresence>
-                        {selectedPreset === "custom" && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
-                            >
-                                <Input
-                                    value={customTheme}
-                                    onChange={(e) => setCustomTheme(e.target.value)}
-                                    placeholder="Describe your custom adventure..."
-                                    className="bg-purple-900/10 border-purple-500/20 text-white placeholder:text-gray-600 text-sm"
-                                />
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+            {/* Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl mb-4">
+                <button
+                    onClick={() => setActiveTab('create')}
+                    className={`relative py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                        activeTab === 'create' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                    }`}
+                >
+                    {activeTab === 'create' && (
+                        <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-indigo-600 rounded-lg"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                    )}
+                    <span className="relative z-10">Create Adventure</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab('join')}
+                    className={`relative py-2.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${
+                        activeTab === 'join' ? "text-white shadow-lg" : "text-gray-500 hover:text-gray-300"
+                    }`}
+                >
+                    {activeTab === 'join' && (
+                        <motion.div
+                            layoutId="activeTab"
+                            className="absolute inset-0 bg-white/10 rounded-lg"
+                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                        />
+                    )}
+                    <span className="relative z-10">Join Adventure</span>
+                </button>
             </div>
+
+            <AnimatePresence mode="wait">
+                {activeTab === 'create' ? (
+                    <motion.div
+                        key="create-tab"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="space-y-4"
+                    >
+                         {/* AI Theme Selection Button */}
+                         <div className="space-y-2">
+                            <label className="text-xs font-semibold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                                <span>✨ Adventure Theme</span>
+                                <span className="bg-purple-500/20 text-purple-300 text-[10px] px-2 py-0.5 rounded-full">AI Powered</span>
+                            </label>
+                            
+                            <button
+                                onClick={() => setShowThemeModal(true)}
+                                className="w-full bg-black/20 hover:bg-black/30 border border-purple-500/30 text-left px-4 py-3 rounded-xl flex items-center justify-between group transition-all"
+                            >
+                                <div className="flex items-center gap-2 text-gray-300 group-hover:text-purple-300 transition-colors">
+                                    <Sparkles size={16} className="text-purple-500" />
+                                    <span className="text-sm font-medium truncate">{getActiveThemeLabel()}</span>
+                                </div>
+                                <span className="text-[10px] bg-white/10 px-2 py-1 rounded text-gray-400 group-hover:text-white transition-colors">GANTI</span>
+                            </button>
+                        </div>
+
+                         <Button
+                            onClick={handleCreate}
+                            disabled={isLoading}
+                            className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-6 text-lg shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all rounded-xl mt-4"
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span>{activeTheme ? "Generating World..." : "Creating Room..."}</span>
+                                </div>
+                            ) : (
+                                "Create new Room"
+                            )}
+                        </Button>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="join-tab"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-4"
+                    >
+                         <div className="space-y-2">
+                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Room Code</label>
+                            <Input
+                                value={roomCode}
+                                onChange={(e) => setRoomCode(e.target.value)}
+                                placeholder="ENTER CODE"
+                                className="bg-black/20 border-white/10 text-white placeholder:text-gray-600 text-center uppercase tracking-widest font-mono h-14 text-2xl"
+                            />
+                        </div>
+                         <Button
+                            onClick={handleJoin}
+                            disabled={isLoading}
+                            className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-6 text-lg border border-white/10"
+                        >
+                            JOIN ADVENTURE
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Theme Selection Modal */}
+            <AnimatePresence>
+                {showThemeModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-slate-900 border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+                        >
+                            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <Sparkles className="text-purple-500" size={18} />
+                                    Pilih Tema Petualangan
+                                </h3>
+                                <button 
+                                    onClick={() => setShowThemeModal(false)}
+                                    className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            
+                            <div className="p-4 overflow-y-auto space-y-4 custom-scrollbar">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {THEME_PRESETS.map((t) => (
+                                        <button
+                                            key={t.value}
+                                            onClick={() => {
+                                                setSelectedPreset(t.value);
+                                                if (t.value !== 'custom') setShowThemeModal(false);
+                                            }}
+                                            className={`relative p-3 rounded-xl border text-left transition-all group ${
+                                                selectedPreset === t.value
+                                                    ? "bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                                                    : "bg-black/20 border-white/10 hover:bg-white/5 hover:border-white/20"
+                                            }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl filter drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    {t.label.split(' ')[0]}
+                                                </span>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-xs font-bold ${selectedPreset === t.value ? "text-white" : "text-gray-300"}`}>
+                                                        {t.label.split(' ').slice(1).join(' ')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {selectedPreset === t.value && (
+                                                <div className="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_5px_currentColor]" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {selectedPreset === "custom" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        className="pt-2"
+                                    >
+                                        <label className="text-[10px] uppercase font-bold text-purple-400 mb-1 block tracking-wider">Tulis Tema Kamu Sendiri</label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={customTheme}
+                                                onChange={(e) => setCustomTheme(e.target.value)}
+                                                placeholder="Contoh: Petualangan Bajak Laut Luar Angkasa..."
+                                                className="bg-black/40 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-gray-600 text-sm h-11"
+                                                autoFocus
+                                            />
+                                            <Button 
+                                                onClick={() => setShowThemeModal(false)}
+                                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-6 header-btn"
+                                            >
+                                                PILIH
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-sm text-center">
@@ -187,44 +350,7 @@ export function Lobby({ onJoin }: LobbyProps) {
                 </div>
             )}
 
-            {/* Actions */}
-            <div className="flex flex-col gap-3 pt-4">
-              <Button
-                onClick={handleCreate}
-                disabled={isLoading}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-6 text-lg shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all rounded-xl"
-              >
-                 {isLoading ? (
-                    <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>{activeTheme ? "Generating World..." : "Creating Room..."}</span>
-                    </div>
-                 ) : (
-                    "Create New Adventure"
-                 )}
-              </Button>
 
-              <div className="relative py-2">
-                  <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/10"></span></div>
-                  <div className="relative flex justify-center text-xs uppercase"><span className="bg-slate-900 px-2 text-gray-500">Or Join Existing</span></div>
-              </div>
-
-               <div className="flex gap-2">
-                <Input
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value)}
-                  placeholder="ROOM CODE"
-                  className="bg-black/20 border-white/10 text-white placeholder:text-gray-600 text-center uppercase tracking-widest font-mono"
-                />
-                <Button
-                  onClick={handleJoin}
-                  disabled={isLoading}
-                  className="bg-white/10 hover:bg-white/20 text-white font-bold px-8"
-                >
-                  JOIN
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
       </motion.div>
