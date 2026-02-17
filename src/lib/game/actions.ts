@@ -7,11 +7,8 @@ import type { HouseRules } from "../types";
 import { getAvatarUrl, type AvatarStyle } from "../avatar";
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
-import { generateRandomPortals } from "./utils";
+import { generateRandomPortals, getNextTurnUpdates } from "./utils";
 import { calculateMovementOutcome } from "./movement";
-
-const BOT_NAMES = ["Auto-Bot 🤖", "Dice-o-Tron 🎲", "Mecha-Snake 🐍", "Robo-Knight ⚔️", "Cyber-Mage 🧙‍♂️", "Techno-Ninja 🥷"];
-const BOT_AVATARS: AvatarStyle[] = ['bottts', 'fun-emoji', 'adventurer', 'avataaars'];
 
 // Helper to append logs and sync with chat
 export function appendLogAndChat(
@@ -40,24 +37,6 @@ export function appendLogAndChat(
 
 export async function startGame(roomId: string) {
   await update(ref(db, `rooms/${roomId}`), { status: "playing" });
-}
-
-export async function addBot(roomId: string) {
-  const botId = `bot-${Date.now()}`;
-  const randomName = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
-  const randomStyle = BOT_AVATARS[Math.floor(Math.random() * BOT_AVATARS.length)];
-  const avatarUrl = getAvatarUrl(randomStyle, randomName); // Seed with name
-
-  await update(ref(db, `rooms/${roomId}/players/${botId}`), {
-      id: botId,
-      name: randomName,
-      avatar: randomStyle, // Fallback
-      customAvatarUrl: avatarUrl,
-      position: 1,
-      isHost: false,
-      isBot: true,
-      hasShield: false
-  });
 }
 
 export async function updateRules(roomId: string, rules: HouseRules) {
@@ -90,32 +69,32 @@ export async function selectRole(roomId: string, playerId: string, roleIdFromSel
 
   // Mage Bonus: Free 2 Cards
   if (roleId === 'mage') {
-      const card1 = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
-      const card2 = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
-      
-      const existingCards = player.cards || [];
-      const updatedCards = [...existingCards, card1, card2];
-      
-      updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
-      logMessages.push(`🧙‍♂️ Bonus Mage (${player.name}): Dapat 2 kartu (${card1.name} & ${card2.name})!`);
+    const card1 = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
+    const card2 = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
+
+    const existingCards = player.cards || [];
+    const updatedCards = [...existingCards, card1, card2];
+
+    updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
+    logMessages.push(`🧙‍♂️ Bonus Mage (${player.name}): Dapat 2 kartu (${card1.name} & ${card2.name})!`);
   }
 
   // Warlord Bonus: Shield & Steal
   if (roleId === 'warlord') {
-      const shieldCard = TREASURE_CARDS.find(c => c.effectType === 'shield')!;
-      const stealCard = TREASURE_CARDS.find(c => c.effectType === 'steal_card')!;
-      
-      const existingCards = player.cards || [];
-      const updatedCards = [...existingCards, shieldCard, stealCard];
-      
-      updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
-      logMessages.push(`⚔️ Bonus Warlord (${player.name}): Memulai dengan ${shieldCard.name} & ${stealCard.name}!`);
+    const shieldCard = TREASURE_CARDS.find(c => c.effectType === 'shield')!;
+    const stealCard = TREASURE_CARDS.find(c => c.effectType === 'steal_card')!;
+
+    const existingCards = player.cards || [];
+    const updatedCards = [...existingCards, shieldCard, stealCard];
+
+    updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
+    logMessages.push(`⚔️ Bonus Warlord (${player.name}): Memulai dengan ${shieldCard.name} & ${stealCard.name}!`);
   }
 
   // Initial Log
   const roleName = getRole(roleId)?.name || "Unknown";
   logMessages.push(`🎭 ${player.name} mendapatkan Job: ${roleName}`);
-  
+
   appendLogAndChat(roomId, currentLogs, logMessages, updates);
 
   await update(ref(db), updates);
@@ -151,10 +130,10 @@ export async function rollDice(roomId: string, playerId: string) {
 
   // Apply Magic Dice effect (Guaranteed 6)
   if (player.magicDice) {
-      roll = 6;
-      await update(ref(db), {
-          [`rooms/${roomId}/players/${playerId}/magicDice`]: null,
-      });
+    roll = 6;
+    await update(ref(db), {
+      [`rooms/${roomId}/players/${playerId}/magicDice`]: null,
+    });
   }
   // Apply Double Dice effect (if not magic dice, or maybe combine? Magic Dice overrides double?)
   else if (player.doubleDice) {
@@ -178,15 +157,15 @@ export async function rollDice(roomId: string, playerId: string) {
   let challengePromise: Promise<{ text: string, penalty: { type: 'steps' | 'skip_turn', value: number } }> | null = null;
 
   if (isChallenge) {
-      const futureState = {
-          ...gameState,
-          players: {
-              ...gameState.players,
-              [playerId]: { ...gameState.players[playerId], position: landingSpot }
-          }
-      };
-      const theme = gameState.aiConfig?.theme || "";
-      challengePromise = generateSingleChallenge(futureState, playerId, theme);
+    const futureState = {
+      ...gameState,
+      players: {
+        ...gameState.players,
+        [playerId]: { ...gameState.players[playerId], position: landingSpot }
+      }
+    };
+    const theme = gameState.aiConfig?.theme || "";
+    challengePromise = generateSingleChallenge(futureState, playerId, theme);
   }
 
   // Wait for dice animation
@@ -215,23 +194,23 @@ export async function rollDice(roomId: string, playerId: string) {
   // Trigger Role Ability Animation
   if (moveResult.triggeredAbility) {
     const roleEmojiMap: Record<string, string> = {
-        ninja: '🥷',
-        jester: '🎭',
-        builder: '🏗️'
+      ninja: '🥷',
+      jester: '🎭',
+      builder: '🏗️'
     };
     const emoji = roleEmojiMap[moveResult.triggeredAbility] || '✨';
-    
+
     updates[`rooms/${roomId}/activeCardEffect`] = {
-        cardId: 'ability-' + Date.now(),
-        emoji: emoji,
-        effectType: 'role_ability',
-        userId: playerId,
-        userName: player.name
+      cardId: 'ability-' + Date.now(),
+      emoji: emoji,
+      effectType: 'role_ability',
+      userId: playerId,
+      userName: player.name
     };
 
     // Clear effect after animation (e.g., 2 seconds)
     setTimeout(() => {
-        update(ref(db), { [`rooms/${roomId}/activeCardEffect`]: null });
+      update(ref(db), { [`rooms/${roomId}/activeCardEffect`]: null });
     }, 2000);
   }
 
@@ -241,44 +220,44 @@ export async function rollDice(roomId: string, playerId: string) {
 
   // Check for World Event (Every 5 turns)
   if (turnCount % 5 === 0) {
-      const eventTypes = ['earthquake', 'wind', 'fog'];
-      const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      
-      let eventName = "";
-      let eventDesc = "";
-      
-      if (randomEvent === 'earthquake') {
-          eventName = "🌍 GEMPA BUMI!";
-          eventDesc = "Posisi Ular & Tangga bergeser!";
-          updates[`rooms/${roomId}/portals`] = generateRandomPortals();
-      } else if (randomEvent === 'wind') {
-           eventName = "🍃 ANGIN REZEKI!";
-           eventDesc = "Semua pemain mendapatkan 1 Kartu Misterius!";
-           // Give card to everyone
-           Object.keys(gameState.players).forEach(pid => {
-               const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
-               const pCards = gameState.players[pid]?.cards || [];
-               updates[`rooms/${roomId}/players/${pid}/cards`] = [...pCards, randomCard];
-           });
-      } else if (randomEvent === 'fog') {
-          eventName = "🌫️ KABUT TEBAL!";
-          eventDesc = "Portal berpindah & tidak terlihat selama 2 putaran!";
-          updates[`rooms/${roomId}/portals`] = generateRandomPortals();
-          updates[`rooms/${roomId}/fogDuration`] = 2;
-      }
+    const eventTypes = ['earthquake', 'wind', 'fog'];
+    const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
 
-      updates[`rooms/${roomId}/activeWorldEvent`] = {
-          id: `event-${Date.now()}`,
-          name: eventName,
-          description: eventDesc,
-          type: randomEvent,
-          timestamp: Date.now()
-      };
+    let eventName = "";
+    let eventDesc = "";
 
-      // Clear event after 5 seconds
-      setTimeout(() => {
-          update(ref(db), { [`rooms/${roomId}/activeWorldEvent`]: null });
-      }, 5000);
+    if (randomEvent === 'earthquake') {
+      eventName = "🌍 GEMPA BUMI!";
+      eventDesc = "Posisi Ular & Tangga bergeser!";
+      updates[`rooms/${roomId}/portals`] = generateRandomPortals();
+    } else if (randomEvent === 'wind') {
+      eventName = "🍃 ANGIN REZEKI!";
+      eventDesc = "Semua pemain mendapatkan 1 Kartu Misterius!";
+      // Give card to everyone
+      Object.keys(gameState.players).forEach(pid => {
+        const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
+        const pCards = gameState.players[pid]?.cards || [];
+        updates[`rooms/${roomId}/players/${pid}/cards`] = [...pCards, randomCard];
+      });
+    } else if (randomEvent === 'fog') {
+      eventName = "🌫️ KABUT TEBAL!";
+      eventDesc = "Portal berpindah & tidak terlihat selama 2 putaran!";
+      updates[`rooms/${roomId}/portals`] = generateRandomPortals();
+      updates[`rooms/${roomId}/fogDuration`] = 2;
+    }
+
+    updates[`rooms/${roomId}/activeWorldEvent`] = {
+      id: `event-${Date.now()}`,
+      name: eventName,
+      description: eventDesc,
+      type: randomEvent,
+      timestamp: Date.now()
+    };
+
+    // Clear event after 5 seconds
+    setTimeout(() => {
+      update(ref(db), { [`rooms/${roomId}/activeWorldEvent`]: null });
+    }, 5000);
   }
 
   // Player always moves to final position (after portal if any)
@@ -300,11 +279,11 @@ export async function rollDice(roomId: string, playerId: string) {
     try {
       let result;
       if (challengePromise) {
-          result = await challengePromise;
+        result = await challengePromise;
       } else {
-          const freshState = await getGameState(roomId);
-          const theme = freshState.aiConfig?.theme || "";
-          result = await generateSingleChallenge(freshState, playerId, theme);
+        const freshState = await getGameState(roomId);
+        const theme = freshState.aiConfig?.theme || "";
+        result = await generateSingleChallenge(freshState, playerId, theme);
       }
       await update(ref(db), {
         [`rooms/${roomId}/currentChallenge`]: result.text,
@@ -318,33 +297,6 @@ export async function rollDice(roomId: string, playerId: string) {
         [`rooms/${roomId}/currentPenalty`]: { type: 'steps', value: 3 }
       });
     }
-    
-    // Auto-resolve Challenge for Bots
-    if (player.isBot) {
-        // Bot fails challenge instantly to save time? Or simple logic.
-        // Let's just apply penalty after a short delay or immediately?
-        // Actually, if we set currentChallenge, the UI shows it.
-        // We'll let the GameRoom effect handle Bot clearing, OR we do it here.
-        // Doing it here is cleaner: Don't set `currentChallenge` for bot, just log and apply result.
-        // But `generateSingleChallenge` overhead...
-        // Let's simplify: Bot blindly accepts penalty.
-        updates[`rooms/${roomId}/currentChallenge`] = null; // No UI
-        // Apply penalty immediately
-        const penaltyVal = 3; 
-        const newPos = Math.max(1, landingSpot - penaltyVal);
-        updates[`rooms/${roomId}/players/${playerId}/position`] = newPos;
-        appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} gagal tantangan (Bot). Mundur ${penaltyVal} langkah.`], updates);
-        
-        // Pass Turn
-        if (!player.extraTurn) {
-             const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-             updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
-        } else {
-             updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-        }
-        await update(ref(db), updates);
-        return; // Exit
-    }
 
   } else if (isTreasure) {
     // Treasure cell — give a random card! Works even if portal also exists.
@@ -355,67 +307,27 @@ export async function rollDice(roomId: string, playerId: string) {
     const updatedCards = [...existingCards, randomCard];
 
     updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
-    
-    if (player.isBot) {
-        // Bot: Instantly get card, no UI modal
-        appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} menemukan ${randomCard.name}!`], updates);
-        
-        // Pass Turn
-        if (!player.extraTurn) {
-             const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-             updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
-        } else {
-             updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-        }
-        await update(ref(db), updates);
-        return;
-    }
 
     updates[`rooms/${roomId}/currentTreasure`] = randomCard;
     // Don't advance turn yet — wait for player to dismiss treasure modal
     await update(ref(db), updates);
   } else if (isRole) {
-      // Role Cell - Offer selection. Works even if portal also exists.
-      const shuffledRoles = [...ROLES].sort(() => 0.5 - Math.random());
-      
-      if (player.isBot) {
-           // Bot: Auto-assign random role
-           const randomRole = shuffledRoles[0];
-           updates[`rooms/${roomId}/players/${playerId}/role`] = randomRole.id;
-           appendLogAndChat(roomId, currentLogs, [`🤖 ${player.name} memilih Job: ${randomRole.name}`], updates);
-           
-            // Pass Turn
-            if (!player.extraTurn) {
-                const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-                updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
-            } else {
-                updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-            }
-            await update(ref(db), updates);
-            return;
-      }
+    // Role Cell - Offer selection. Works even if portal also exists.
+    const shuffledRoles = [...ROLES].sort(() => 0.5 - Math.random());
 
-      const selectedRoleIds = shuffledRoles.slice(0, 3).map(r => r.id);
-      updates[`rooms/${roomId}/currentRoleSelection`] = selectedRoleIds;
-      // Don't advance turn yet - wait for player to select role
-      await update(ref(db), updates);
+    const selectedRoleIds = shuffledRoles.slice(0, 3).map(r => r.id);
+    updates[`rooms/${roomId}/currentRoleSelection`] = selectedRoleIds;
+    // Don't advance turn yet - wait for player to select role
+    await update(ref(db), updates);
 
   } else {
     // Normal move (no card effect)
     // Check extra turn
     if (!player.extraTurn) {
-      const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-      updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
-
-      // Decrement Fog Duration (Round based)
-      if (nextTurnIndex === 0 && (gameState.fogDuration || 0) > 0) {
-          const newDuration = (gameState.fogDuration || 0) - 1;
-          if (newDuration <= 0) {
-              updates[`rooms/${roomId}/fogDuration`] = null;
-              appendLogAndChat(roomId, gameState.logs || [], ["☀️ Kabut telah hilang! Portals terlihat kembali."], updates);
-          } else {
-              updates[`rooms/${roomId}/fogDuration`] = newDuration;
-          }
+      const result = getNextTurnUpdates(roomId, gameState);
+      Object.assign(updates, result.updates);
+      if (result.logs.length > 0) {
+        appendLogAndChat(roomId, gameState.logs || [], result.logs, updates);
       }
     } else {
       updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
@@ -492,12 +404,12 @@ export async function sendChatMessage(roomId: string, playerId: string, message:
  * Helper to detect role based on Avatar URL style
  */
 function detectRoleFromAvatar(url: string): RoleType {
-    if (url.includes('/fun-emoji/')) return 'jester'; // Hidden Role
-    if (url.includes('/adventurer-neutral/')) return 'warlord'; // Powerful Role
-    if (url.includes('/bottts/')) return 'builder';
-    if (url.includes('/avataaars/')) return 'mage';
-    if (url.includes('/adventurer/')) return 'ninja';
-    
-    // Default fallback
-    return 'tank'; 
+  if (url.includes('/fun-emoji/')) return 'jester'; // Hidden Role
+  if (url.includes('/adventurer-neutral/')) return 'warlord'; // Powerful Role
+  if (url.includes('/bottts/')) return 'builder';
+  if (url.includes('/avataaars/')) return 'mage';
+  if (url.includes('/adventurer/')) return 'ninja';
+
+  // Default fallback
+  return 'tank';
 }

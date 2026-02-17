@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { playCard, clearCardEffect, updateStakes, acceptStakes, updateRules, addBot } from "../lib/game";
+import { playCard, clearCardEffect, updateStakes, acceptStakes, updateRules } from "../lib/game";
 import { playCardUseSound, playWorldEventSound, playDiceResultSound } from "../lib/sounds";
 import { WorldEventVisuals } from "./game/WorldEventVisuals";
 import { Board } from "./Board";
@@ -102,36 +102,14 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
         // Play notification sound? (Managed by listener)
     };
 
-    const player = gameState?.players?.[playerId];
-    const isHost = player?.isHost;
-    const playersList = gameState?.players ? Object.values(gameState.players) : [];
-    const activePlayerId = playersList[gameState?.currentTurnIndex || 0]?.id;
-    const activePlayer = playersList[gameState?.currentTurnIndex || 0];
-    const isTurn = gameState?.status === "playing" && activePlayerId === playerId;
-
-    // --- Bot Logic ---
-    useEffect(() => {
-        if (!gameState?.players || !activePlayerId) return; // Add check
-        // Only Host runs the bot logic to avoid race conditions
-        if (activePlayer?.isBot && isHost && gameState.status === 'playing' && !gameState.isRolling && !gameState.winner && !gameState.currentChallenge && !gameState.currentTreasure && !gameState.currentRoleSelection) {
-
-            const botThinkingTime = 1500; // 1.5s delay
-            const timer = setTimeout(() => {
-                handleRoll();
-            }, botThinkingTime);
-
-            return () => clearTimeout(timer);
-        }
-
-        // Auto-handle Bot on Special Cells (Challenge/Treasure)
-        if (activePlayer?.isBot && isHost) {
-            if (gameState.currentTreasure) {
-                // Bot interaction handled in actions.ts
-            }
-        }
-    }, [gameState?.currentTurnIndex, gameState?.isRolling, gameState?.status, activePlayerId, gameState?.players, isHost, gameState?.winner, gameState?.currentChallenge, gameState?.currentTreasure, gameState?.currentRoleSelection, handleRoll, activePlayer]); // Removed handleRoll from dependency (cycle) - wait, linter complained about missing deps
-
     if (!gameState || !gameState.players) return <div className="text-white text-center mt-20 animate-pulse text-lg">⏳ Loading game state...</div>;
+
+    const player = gameState.players[playerId];
+    const isHost = player?.isHost;
+    const playersList = Object.values(gameState.players);
+    const activePlayerId = playersList[gameState.currentTurnIndex]?.id;
+    const activePlayer = playersList[gameState.currentTurnIndex];
+    const isTurn = gameState.status === "playing" && activePlayerId === playerId;
 
     const disabled = !isTurn || !!gameState.currentChallenge || isAnimating || !!gameState.isRolling;
 
@@ -163,7 +141,6 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     onAcceptStakes={() => acceptStakes(roomId, playerId)}
                     rules={gameState.rules}
                     onUpdateRules={(rules) => updateRules(roomId, rules)}
-                    onAddBot={() => addBot(roomId)}
                 />
                 <GameChat
                     roomId={roomId}
@@ -206,7 +183,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const isNight = cyclePos >= 15;
 
     return (
-        <div className={`w-full h-screen flex flex-col items-center justify-center relative overflow-y-auto transition-colors duration-[2000ms] ${timeMood}`}>
+        <div className={`w-full h-screen flex flex-col items-center justify-center relative overflow-y-auto transition-colors duration-2000 ${timeMood}`}>
             {/* Time Indicator */}
             <div className="fixed top-3 left-3 z-20 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-bold text-white shadow-lg flex items-center gap-2">
                 <span className="text-base">{timeIcon}</span>
@@ -254,7 +231,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 >
                     <div className={`px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-[10px] text-yellow-400 font-bold flex items-center gap-2 ${isHost ? 'hover:bg-yellow-500/20' : ''}`}>
                         <span>🏆</span>
-                        <span className="max-w-[150px] truncate">"{gameState.stakes}"</span>
+                        <span className="max-w-37.5 truncate">"{gameState.stakes}"</span>
                         {isHost && <span className="text-[8px] opacity-50 ml-1">(Edit)</span>}
                     </div>
                 </div>
@@ -265,7 +242,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-none w-full max-w-md px-4">
                     <div className="bg-black/80 backdrop-blur-md border border-yellow-500/50 rounded-xl p-4 shadow-[0_0_30px_rgba(234,179,8,0.3)] animate-bounce-in">
                         <div className="text-center">
-                            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-red-400 uppercase tracking-widest drop-shadow-sm">
+                            <h3 className="text-2xl font-black text-transparent bg-clip-text bg-linear-to-r from-yellow-300 to-red-400 uppercase tracking-widest drop-shadow-sm">
                                 {gameState.activeWorldEvent.name}
                             </h3>
                             <p className="text-white/90 text-sm font-medium mt-1">
@@ -282,7 +259,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 aiConfig={gameState.aiConfig}
             />
 
-            <div className="flex-1 w-full flex items-center justify-center pb-32 pt-16 min-h-[500px]">
+            <div className="flex-1 w-full flex items-center justify-center pb-32 pt-16 min-h-125">
                 <Board
                     players={playersList}
                     displayPositions={displayPositions}
@@ -370,7 +347,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
             {/* Stakes Edit Modal */}
             {isEditingStakes && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6">
                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                             <span>🏆</span> Edit Taruhan & Hukuman
@@ -383,7 +360,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                             <textarea
                                 value={editStakesValue}
                                 onChange={(e) => setEditStakesValue(e.target.value)}
-                                className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white placeholder:text-white/20 focus:outline-none focus:border-yellow-500/50 transition-colors min-h-[120px] resize-none"
+                                className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white placeholder:text-white/20 focus:outline-none focus:border-yellow-500/50 transition-colors min-h-30 resize-none"
                                 placeholder="Contoh: Yang kalah push up 10x..."
                                 autoFocus
                             />

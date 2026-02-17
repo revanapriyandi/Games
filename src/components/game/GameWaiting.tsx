@@ -21,10 +21,9 @@ interface GameWaitingProps {
     onAcceptStakes?: () => void;
     rules?: HouseRules;
     onUpdateRules?: (rules: HouseRules) => void;
-    onAddBot?: () => void;
 }
 
-export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules, onAddBot }: GameWaitingProps) {
+export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules }: GameWaitingProps) {
     const [isStakesModalOpen, setIsStakesModalOpen] = useState(false);
     const hasStakes = !!stakes && stakes.trim().length > 0;
     const allAccepted = !hasStakes || (stakesAcceptedBy && players.every(p => stakesAcceptedBy.includes(p.id)));
@@ -34,26 +33,26 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-[400px] w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
+            className="max-w-100 w-full mx-auto p-6 bg-slate-900/80 backdrop-blur-xl rounded-2xl text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10"
         >
             {/* Header / Room Code */}
             <div className="mb-6 relative flex flex-col items-center">
-                 <div className="-mt-3 mb-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold tracking-widest uppercase border border-yellow-500/20 rounded-full">
+                <div className="-mt-3 mb-2 px-3 py-1 bg-yellow-500/10 text-yellow-400 text-[10px] font-bold tracking-widest uppercase border border-yellow-500/20 rounded-full">
                     Lobby Area
-                 </div>
-                 <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">KODE RUANG</h2>
-                 <button
+                </div>
+                <h2 className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-2">KODE RUANG</h2>
+                <button
                     onClick={onCopy}
                     className="group relative inline-flex items-center justify-center gap-3 px-6 py-3 bg-black/50 hover:bg-black/70 rounded-xl border border-white/10 hover:border-white/30 transition-all w-full active:scale-95"
                     title="Salin Kode"
-                 >
+                >
                     <span className="text-3xl font-mono font-bold text-white tracking-widest group-hover:text-yellow-400 transition-colors">
                         {roomId}
                     </span>
                     <div className="absolute right-4 text-white/20 group-hover:text-white/80 transition-colors">
                         {copied ? <span className="text-green-400 text-[10px] font-bold">DISALIN!</span> : <Copy size={16} />}
                     </div>
-                 </button>
+                </button>
             </div>
 
             {/* Player List */}
@@ -64,18 +63,10 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                         Pemain ({players.length}/4)
                     </h3>
                     {players.length < 2 && (
-                         <span className="text-[10px] text-red-400 flex items-center gap-1 animate-pulse">
+                        <span className="text-[10px] text-red-400 flex items-center gap-1 animate-pulse">
                             <AlertTriangle size={10} />
                             Butuh min. 2
-                         </span>
-                    )}
-                    {isHost && players.length < 4 && (
-                        <button 
-                            onClick={onAddBot}
-                            className="text-[10px] bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-0.5 rounded flex items-center gap-1 transition-colors"
-                        >
-                            <span>🤖</span> +Bot
-                        </button>
+                        </span>
                     )}
                 </div>
 
@@ -86,11 +77,10 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: idx * 0.1 }}
                             key={p.id}
-                            className={`relative flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
-                                p.id === playerId
-                                    ? "bg-indigo-950/60 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
-                                    : "bg-white/5 border-white/5 hover:bg-white/10"
-                            }`}
+                            className={`relative flex items-center gap-3 p-2.5 rounded-xl border transition-all ${p.id === playerId
+                                ? "bg-indigo-950/60 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]"
+                                : "bg-white/5 border-white/5 hover:bg-white/10"
+                                }`}
                         >
                             <div className="relative">
                                 <img
@@ -162,11 +152,11 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-center text-white placeholder:text-gray-600 focus:outline-none focus:border-yellow-500/50 transition-colors"
                         />
                         <div className="absolute inset-x-0 -bottom-3 text-[9px] text-gray-500">
-                             Jika diubah, persetujuan akan di-reset.
+                            Jika diubah, persetujuan akan di-reset.
                         </div>
                     </div>
                 ) : (
-                    <div className="text-sm font-medium text-white italic truncate max-w-[250px] mx-auto">
+                    <div className="text-sm font-medium text-white italic truncate max-w-62.5 mx-auto">
                         "{stakes || "Belum ada taruhan..."}"
                     </div>
                 )}
@@ -224,7 +214,7 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     <Settings size={12} />
                     Variasi Aturan Game
                 </h3>
-                
+
                 <div className="space-y-2">
                     {/* Strict Finish Rule */}
                     <div className="flex items-center justify-between p-2 rounded-lg bg-black/20 border border-white/5">
@@ -233,14 +223,14 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             <div className="text-[9px] text-gray-400">Harus dadu pas untuk finish (100).</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                                type="checkbox" 
+                            <input
+                                type="checkbox"
                                 className="sr-only peer"
                                 checked={!!rules?.strictFinish}
                                 disabled={!isHost}
                                 onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), strictFinish: e.target.checked })}
                             />
-                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
                         </label>
                     </div>
 
@@ -251,14 +241,14 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             <div className="text-[9px] text-gray-400">Turun ular lebih jauh / menyakitkan.</div>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
-                            <input 
-                                type="checkbox" 
+                            <input
+                                type="checkbox"
                                 className="sr-only peer"
                                 checked={!!rules?.doubleSnake}
                                 disabled={!isHost}
                                 onChange={(e) => isHost && onUpdateRules?.({ ...(rules || { strictFinish: false, doubleSnake: false, noShield: false }), doubleSnake: e.target.checked })}
                             />
-                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
+                            <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-600"></div>
                         </label>
                     </div>
                 </div>
@@ -270,18 +260,17 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     <Button
                         onClick={() => startGame(roomId)}
                         disabled={players.length < 2 || !allAccepted}
-                        className={`w-full py-6 text-lg font-bold shadow-xl transition-all ${
-                            players.length < 2 || !allAccepted
-                                ? "bg-gray-700 text-gray-400 cursor-not-allowed border border-white/5"
-                                : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border border-indigo-400/30 hover:shadow-indigo-500/20"
-                        }`}
+                        className={`w-full py-6 text-lg font-bold shadow-xl transition-all ${players.length < 2 || !allAccepted
+                            ? "bg-gray-700 text-gray-400 cursor-not-allowed border border-white/5"
+                            : "bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white border border-indigo-400/30 hover:shadow-indigo-500/20"
+                            }`}
                     >
                         {players.length < 2 ? "MENUNGGU PEMAIN..." : !allAccepted ? "MENUNGGU PERSETUJUAN..." : "⚔️ MULAI GAME"}
                     </Button>
                 ) : (
                     <div className="w-full py-4 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center gap-2 text-gray-400 animate-pulse text-xs font-medium uppercase tracking-wider">
-                         <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full"/>
-                         Menunggu Host...
+                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
+                        Menunggu Host...
                     </div>
                 )}
 
@@ -329,7 +318,7 @@ function StakesModal({ stakes, onClose, onAccept, players, stakesAcceptedBy, pla
                 <h3 className="text-yellow-400 text-center font-bold text-lg mt-6 mb-2 uppercase tracking-widest">
                     Kesepakatan Taruhan
                 </h3>
-                
+
                 <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
                     <p className="text-white text-lg font-medium text-center leading-relaxed">
                         "{stakes}"
@@ -342,11 +331,10 @@ function StakesModal({ stakes, onClose, onAccept, players, stakesAcceptedBy, pla
                         {players.map((p) => {
                             const agreed = stakesAcceptedBy?.includes(p.id);
                             return (
-                                <div key={p.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs ${
-                                    agreed 
+                                <div key={p.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs ${agreed
                                     ? "bg-green-500/20 border-green-500/40 text-green-300"
                                     : "bg-white/5 border-white/10 text-gray-500 grayscale opacity-50"
-                                }`}>
+                                    }`}>
                                     <img src={getAvatarImage(p.avatar)} className="w-4 h-4" />
                                     <span>{p.name}</span>
                                     {agreed && <span>✅</span>}
@@ -360,8 +348,8 @@ function StakesModal({ stakes, onClose, onAccept, players, stakesAcceptedBy, pla
                     <Button variant="outline" onClick={onClose} className="border-white/10 hover:bg-white/5 text-gray-400">
                         Kembali
                     </Button>
-                    <Button 
-                        onClick={onAccept} 
+                    <Button
+                        onClick={onAccept}
                         className="bg-green-600 hover:bg-green-500 text-white font-bold"
                         disabled={stakesAcceptedBy?.includes(playerId)}
                     >

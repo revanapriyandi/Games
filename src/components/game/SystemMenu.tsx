@@ -42,7 +42,7 @@ export function SystemMenu({
     }, [isOpen]);
 
     return (
-        <div ref={menuRef} className="fixed top-3 left-3 z-[70]">
+        <div ref={menuRef} className="fixed top-3 left-3 z-70">
             {/* Icon Bar - Roblox style */}
             <div className="flex items-center gap-1 bg-black/70 backdrop-blur-md rounded-xl border border-white/10 p-1 shadow-2xl">
                 {/* Menu toggle */}
@@ -98,7 +98,7 @@ export function SystemMenu({
                         <div className="px-4 py-3 border-b border-white/10">
                             <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Room ID</div>
                             <div className="text-xs font-mono text-white select-all mb-2">{roomId}</div>
-                            
+
                             {themeName && (
                                 <>
                                     <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Theme</div>

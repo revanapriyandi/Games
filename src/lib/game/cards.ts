@@ -4,6 +4,7 @@ import { getGameState } from "./core";
 import { SNAKES_LADDERS } from "../constants";
 import { calculateMovementOutcome } from "./movement";
 import { appendLogAndChat } from "./actions";
+import { getNextTurnUpdates } from "./utils";
 import type { ActiveCardEffect } from "../types";
 
 export async function dismissTreasure(roomId: string) {
@@ -18,8 +19,11 @@ export async function dismissTreasure(roomId: string) {
 
   // Check extra turn
   if (!player?.extraTurn) {
-    const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-    updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+    const result = getNextTurnUpdates(roomId, gameState);
+    Object.assign(updates, result.updates);
+    if (result.logs.length > 0) {
+      appendLogAndChat(roomId, gameState.logs || [], result.logs, updates);
+    }
   } else {
     updates[`rooms/${roomId}/players/${activePlayerId}/extraTurn`] = null;
   }
@@ -80,9 +84,9 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
         // Handle portal logs and updates
         if (moveResult.portal) {
-             updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
-             updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
-             updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+          updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+          updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+          updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
         }
 
         // Append move logs (e.g. Ninja dodge, Builder)
@@ -135,13 +139,13 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
 
       if (moveResult.portal) {
-             updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
-             updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
-             updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+        updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+        updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+        updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
       }
 
       if (moveResult.shieldUsed) {
-           updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
+        updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
       }
 
       logMessages.push(`🌀 ${player.name} teleportasi maju 5 langkah!`);
@@ -238,9 +242,9 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
 
       if (moveResult.portal) {
-             updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
-             updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
-             updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+        updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+        updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+        updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
       }
 
       logMessages.push(`🚀 ${player.name} meluncur 7 langkah dengan Roket!`);
@@ -252,39 +256,39 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       const target = gameState.players[targetId];
 
       if (target.hasShield) {
-          updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-          logMessages.push(`🛡️ ${target.name} memblok Bom dengan Perisai!`);
-          effect.targetId = targetId;
-          effect.targetName = target.name;
-          effect.emoji = '🛡️';
-          effect.isBlocked = true;
-          break;
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        logMessages.push(`🛡️ ${target.name} memblok Bom dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        effect.isBlocked = true;
+        break;
       }
-      
+
       if (target.role === 'tank') {
-          logMessages.push(`🛡️ ${target.name} (Tank) menahan ledakan Bom!`);
-          effect.targetId = targetId;
-          effect.targetName = target.name;
-          effect.emoji = '🛡️';
-          effect.isBlocked = true;
+        logMessages.push(`🛡️ ${target.name} (Tank) menahan ledakan Bom!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
-          const currentPos = target.position || 1;
-          const portals = gameState.portals || SNAKES_LADDERS;
-          const moveResult = calculateMovementOutcome(currentPos, -5, portals, target); // Back 5
+        const currentPos = target.position || 1;
+        const portals = gameState.portals || SNAKES_LADDERS;
+        const moveResult = calculateMovementOutcome(currentPos, -5, portals, target); // Back 5
 
-          updates[`rooms/${roomId}/players/${targetId}/position`] = moveResult.finalPosition;
-          
-          if (moveResult.portal) {
-               updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
-               updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
-               updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
-          }
+        updates[`rooms/${roomId}/players/${targetId}/position`] = moveResult.finalPosition;
 
-          logMessages.push(`💣 ${player.name} meledakkan ${target.name} mundur 5 langkah!`);
-          logMessages.push(...moveResult.logs);
+        if (moveResult.portal) {
+          updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+          updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+          updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+        }
 
-          effect.targetId = targetId;
-          effect.targetName = target.name;
+        logMessages.push(`💣 ${player.name} meledakkan ${target.name} mundur 5 langkah!`);
+        logMessages.push(...moveResult.logs);
+
+        effect.targetId = targetId;
+        effect.targetName = target.name;
       }
       break;
     }
@@ -298,51 +302,51 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       const target = gameState.players[targetId];
 
       if (target.hasShield) {
-          updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-          logMessages.push(`🛡️ ${target.name} memblok Magnet dengan Perisai!`);
-          effect.targetId = targetId;
-          effect.targetName = target.name;
-          effect.emoji = '🛡️';
-          effect.isBlocked = true;
-          break;
+        updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
+        logMessages.push(`🛡️ ${target.name} memblok Magnet dengan Perisai!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        effect.isBlocked = true;
+        break;
       }
 
       if (target.role === 'tank') {
-          logMessages.push(`🛡️ ${target.name} (Tank) terlalu berat untuk ditarik Magnet!`);
-          effect.targetId = targetId;
-          effect.targetName = target.name;
-          effect.emoji = '🛡️';
-          effect.isBlocked = true;
+        logMessages.push(`🛡️ ${target.name} (Tank) terlalu berat untuk ditarik Magnet!`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
+        effect.emoji = '🛡️';
+        effect.isBlocked = true;
       } else {
-          const myPos = player.position || 1;
-          const targetDestination = Math.max(1, myPos - 1); // Behind player
+        const myPos = player.position || 1;
+        const targetDestination = Math.max(1, myPos - 1); // Behind player
 
-          const portals = gameState.portals || SNAKES_LADDERS;
-          // We move them directly, but check for portals at destination? 
-          // Usually magnets/swaps ignore movement rules, but landing on a snake?
-          // Let's use calculateMovementOutcome with 0 roll from destination to check portals.
-          
-          // Actually, let's just place them. If we want them to trigger portals, we check landing spot.
-          // Re-using calculateMovement logic is tricky for direct placement.
-          // Let's simplified version:
-          let finalPos = targetDestination;
-          let portalLog = "";
-          
-          if (portals[finalPos]) {
-              const dest = portals[finalPos];
-              const type = dest > finalPos ? "Tangga" : "Ular";
-              portalLog = `(Kena ${type}!)`;
-              updates[`rooms/${roomId}/portalFrom`] = finalPos;
-              updates[`rooms/${roomId}/portalTo`] = dest;
-              updates[`rooms/${roomId}/portalType`] = dest > finalPos ? "ladder" : "snake";
-              finalPos = dest;
-          }
+        const portals = gameState.portals || SNAKES_LADDERS;
+        // We move them directly, but check for portals at destination? 
+        // Usually magnets/swaps ignore movement rules, but landing on a snake?
+        // Let's use calculateMovementOutcome with 0 roll from destination to check portals.
 
-          updates[`rooms/${roomId}/players/${targetId}/position`] = finalPos;
-          
-          logMessages.push(`🧲 ${player.name} menarik ${target.name} ke posisi ${finalPos}! ${portalLog}`);
-          effect.targetId = targetId;
-          effect.targetName = target.name;
+        // Actually, let's just place them. If we want them to trigger portals, we check landing spot.
+        // Re-using calculateMovement logic is tricky for direct placement.
+        // Let's simplified version:
+        let finalPos = targetDestination;
+        let portalLog = "";
+
+        if (portals[finalPos]) {
+          const dest = portals[finalPos];
+          const type = dest > finalPos ? "Tangga" : "Ular";
+          portalLog = `(Kena ${type}!)`;
+          updates[`rooms/${roomId}/portalFrom`] = finalPos;
+          updates[`rooms/${roomId}/portalTo`] = dest;
+          updates[`rooms/${roomId}/portalType`] = dest > finalPos ? "ladder" : "snake";
+          finalPos = dest;
+        }
+
+        updates[`rooms/${roomId}/players/${targetId}/position`] = finalPos;
+
+        logMessages.push(`🧲 ${player.name} menarik ${target.name} ke posisi ${finalPos}! ${portalLog}`);
+        effect.targetId = targetId;
+        effect.targetName = target.name;
       }
       break;
     }

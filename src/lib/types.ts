@@ -41,7 +41,6 @@ export interface Player {
   extraTurn?: boolean;
   giveUpCount?: number;
   chatMessage?: string;
-  isBot?: boolean;
 }
 
 /** AI-generated game content based on user's theme */
@@ -90,11 +89,11 @@ export interface GameState {
   currentRoleSelection?: string[] | null;
   turnCount?: number;
   activeWorldEvent?: {
-      id: string;
-      name: string;
-      description: string;
-      type: 'earthquake' | 'wind' | 'fog';
-      timestamp: number;
+    id: string;
+    name: string;
+    description: string;
+    type: 'earthquake' | 'wind' | 'fog';
+    timestamp: number;
   } | null;
   stakes?: string | null;
   stakesAcceptedBy?: string[];

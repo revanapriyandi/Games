@@ -76,7 +76,7 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
         <motion.div
             animate={worldEventType === 'earthquake' ? { x: [-2, 2, -2, 2, 0], y: [1, -1, 0] } : {}}
             transition={{ duration: 0.2, repeat: worldEventType === 'earthquake' ? Infinity : 0 }}
-            className={`relative w-full max-w-[98vw] md:max-w-[85vh] lg:max-w-[90vh] aspect-square rounded-xl shadow-2xl overflow-hidden border border-[#8B4513]/50 mx-auto select-none transition-all duration-[2000ms] ${isNight ? 'brightness-[0.6] sepia-[0.2] hue-rotate-[15deg]' : ''}`}
+            className={`relative w-full max-w-[98vw] md:max-w-[85vh] lg:max-w-[90vh] aspect-square rounded-xl shadow-2xl overflow-hidden border border-[#8B4513]/50 mx-auto select-none transition-all duration-2000 ${isNight ? 'brightness-[0.6] sepia-[0.2] hue-rotate-15' : ''}`}
         >
             {/* Fantasy Map Background */}
             <img
