@@ -1,6 +1,7 @@
 import { db } from "../firebase";
 import { ref, update, set, push, child, get } from "firebase/database";
-import { CHALLENGE_CELLS, TREASURE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SNAKES_LADDERS } from "../constants";
+import { CHALLENGE_CELLS, TREASURE_CELLS, ROLE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SNAKES_LADDERS } from "../constants";
+import { ROLES, getRole } from "../roles";
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
 import { generateRandomPortals } from "./utils";
@@ -33,6 +34,47 @@ export function appendLogAndChat(
 
 export async function startGame(roomId: string) {
   await update(ref(db, `rooms/${roomId}`), { status: "playing" });
+}
+
+export async function selectRole(roomId: string, playerId: string, roleId: string) {
+  const gameState = await getGameState(roomId);
+  const player = gameState.players[playerId];
+  if (!player) return;
+
+  const role = getRole(roleId);
+  if (!role) return;
+
+  const updates: Record<string, unknown> = {};
+  const currentLogs = gameState.logs || [];
+
+  // Set role
+  updates[`rooms/${roomId}/players/${playerId}/role`] = roleId;
+  updates[`rooms/${roomId}/currentRoleSelection`] = null;
+
+  const logMessages = [`🎭 ${player.name} memilih class: ${role.name}!`];
+
+  // Mage Bonus: Free Card
+  if (roleId === 'mage') {
+      const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
+      const existingCards = player.cards || [];
+      const updatedCards = [...existingCards, randomCard];
+      updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
+      logMessages.push(`🧙‍♂️ Bonus Mage: Dapat kartu ${randomCard.name}!`);
+  }
+
+  appendLogAndChat(roomId, currentLogs, logMessages, updates);
+
+  // Advance Turn
+  const playersIds = Object.keys(gameState.players);
+  if (!player.extraTurn) {
+    const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
+    updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+  } else {
+    updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
+    appendLogAndChat(roomId, currentLogs, [`⚡ ${player.name} menggunakan Bonus Giliran!`], updates);
+  }
+
+  await update(ref(db), updates);
 }
 
 export async function rollDice(roomId: string, playerId: string) {
@@ -80,6 +122,8 @@ export async function rollDice(roomId: string, playerId: string) {
   // Check cell types at destination (landing spot)
   const isChallenge = CHALLENGE_CELLS.has(landingSpot);
   const isTreasure = TREASURE_CELLS.has(landingSpot);
+  const isRole = ROLE_CELLS.has(landingSpot);
+
   let challengePromise: Promise<{ text: string, penalty: { type: 'steps' | 'skip_turn', value: number } }> | null = null;
 
   if (isChallenge) {
@@ -169,6 +213,18 @@ export async function rollDice(roomId: string, playerId: string) {
     updates[`rooms/${roomId}/currentTreasure`] = randomCard;
     // Don't advance turn yet — wait for player to dismiss treasure modal
     await update(ref(db), updates);
+  } else if (isRole && !moveResult.portal) {
+      // Role Cell - Offer selection
+      const shuffledRoles = [...ROLES].sort(() => 0.5 - Math.random());
+      const selectedRoleIds = shuffledRoles.slice(0, 3).map(r => r.id);
+
+      updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
+      updates[`rooms/${roomId}/lastRoll`] = roll;
+      updates[`rooms/${roomId}/isRolling`] = false;
+      updates[`rooms/${roomId}/currentRoleSelection`] = selectedRoleIds;
+      // Don't advance turn yet - wait for player to select role
+      await update(ref(db), updates);
+
   } else {
     // Normal move
     updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
@@ -201,6 +257,7 @@ export async function resetGame(roomId: string) {
   updates[`rooms/${roomId}/portalFrom`] = null;
   updates[`rooms/${roomId}/portalTo`] = null;
   updates[`rooms/${roomId}/portalType`] = null;
+  updates[`rooms/${roomId}/currentRoleSelection`] = null;
   updates[`rooms/${roomId}/logs`] = [];
 
   if (gameState.players) {
@@ -211,6 +268,7 @@ export async function resetGame(roomId: string) {
       updates[`rooms/${roomId}/players/${pid}/doubleDice`] = null;
       updates[`rooms/${roomId}/players/${pid}/extraTurn`] = null;
       updates[`rooms/${roomId}/players/${pid}/skippedTurns`] = null;
+      updates[`rooms/${roomId}/players/${pid}/role`] = null; // Reset role
     });
   }
 

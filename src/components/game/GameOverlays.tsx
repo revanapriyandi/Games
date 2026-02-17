@@ -4,7 +4,8 @@ import { ChallengeModal } from "../ChallengeModal";
 import TreasureModal from "../TreasureModal";
 import { WinnerModal } from "../WinnerModal";
 import { PortalAnimation } from "../PortalAnimation";
-import { failChallenge, markChallengeComplete, dismissTreasure, resetGame } from "../../lib/game";
+import { RoleSelectionModal } from "./RoleSelectionModal";
+import { failChallenge, markChallengeComplete, dismissTreasure, resetGame, selectRole } from "../../lib/game";
 import { playTreasureSound } from "../../lib/sounds";
 
 interface GameOverlaysProps {
@@ -93,6 +94,16 @@ export function GameOverlays({
                         isActivePlayer={activePlayer?.id === playerId}
                         playerName={activePlayer?.name || ""}
                         onDismiss={handleDismissTreasure}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Role Selection Overlay */}
+            <AnimatePresence>
+                {!!gameState.currentRoleSelection && !isAnimating && !isWaitingForAnimation && !gameState.isRolling && !thinkingPlayerId && activePlayer?.id === playerId && (
+                    <RoleSelectionModal
+                        roleIds={gameState.currentRoleSelection}
+                        onSelect={(roleId) => selectRole(roomId, playerId, roleId)}
                     />
                 )}
             </AnimatePresence>

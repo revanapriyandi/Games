@@ -10,10 +10,11 @@ interface BoardCellProps {
     portal?: number;
     isChallenge: boolean;
     isTreasure: boolean;
+    isRole?: boolean;
     activePortalCell: number | null;
 }
 
-export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex, portal, isChallenge, isTreasure, activePortalCell }: BoardCellProps) {
+export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex, portal, isChallenge, isTreasure, isRole, activePortalCell }: BoardCellProps) {
     const isLadder = portal !== undefined && portal > cellNum;
     const isSnake = portal !== undefined && portal < cellNum;
 
@@ -29,6 +30,7 @@ export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex
                 ${cellNum === 1 ? 'bg-green-500/40' : ''}
                 ${isChallenge && !isLadder && !isSnake ? 'bg-amber-500/15' : ''}
                 ${isTreasure && !isLadder && !isSnake ? 'bg-purple-500/15' : ''}
+                ${isRole && !isLadder && !isSnake ? 'bg-indigo-500/15' : ''}
             `}
         >
             <span className="absolute top-0.5 left-0.5 z-[5] text-[7px] md:text-[9px] font-bold text-white bg-black/30 backdrop-blur-[1px] px-0.5 rounded-br text-center leading-none shadow-sm min-w-[12px]">
@@ -46,6 +48,16 @@ export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex
                     className="absolute top-0 right-0 text-[6px] md:text-[8px] leading-none select-none"
                 >
                     💎
+                </motion.span>
+            )}
+
+            {isRole && !isLadder && !isSnake && (
+                <motion.span
+                    animate={{ y: [0, -2, 0], opacity: [0.7, 1, 0.7] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="absolute top-0 right-0 text-[6px] md:text-[8px] leading-none select-none"
+                >
+                    🎭
                 </motion.span>
             )}
 
