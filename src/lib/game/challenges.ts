@@ -94,6 +94,9 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   // Increment giveUpCount
   updates[`rooms/${roomId}/players/${playerId}/giveUpCount`] = currentGiveUpCount + 1;
 
+  let extraLogs: string[] = [];
+  let logMessage = '';
+
   if (penalty.type === 'steps') {
     // Penalty: Move back X steps
     const currentPos = gameState.players[playerId].position || 0;
