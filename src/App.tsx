@@ -1,8 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense, useEffect } from 'react';
 import { SplashScreen } from './components/SplashScreen';
-import { Lobby } from './components/Lobby';
-import { GameRoom } from './components/GameRoom';
 import { leaveRoom } from './lib/game';
+
+// Lazy load components with named exports
+const Lobby = lazy(() => import('./components/Lobby').then(module => ({ default: module.Lobby })));
+const GameRoom = lazy(() => import('./components/GameRoom').then(module => ({ default: module.GameRoom })));
 
 function App() {
   const [showSplash, setShowSplash] = useState(true);
@@ -10,6 +12,17 @@ function App() {
     const saved = localStorage.getItem("snake_ladder_session");
     return saved ? JSON.parse(saved) : null;
   });
+
+  // Preload components while splash screen is showing
+  useEffect(() => {
+    const preload = () => {
+      import('./components/Lobby');
+      import('./components/GameRoom');
+    };
+    // Delay slightly to let the splash screen animation start smoothly
+    const timer = setTimeout(preload, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleJoin = useCallback((roomId: string, playerId: string) => {
     const session = { roomId, playerId };
@@ -32,15 +45,17 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-slate-900 to-black text-white flex flex-col items-center justify-center p-4">
-      {!gameSession ? (
-        <Lobby onJoin={handleJoin} />
-      ) : (
-        <GameRoom 
-          roomId={gameSession.roomId} 
-          playerId={gameSession.playerId} 
-          onLeave={handleLeave}
-        />
-      )}
+      <Suspense fallback={<div className="text-white animate-pulse">Loading adventure...</div>}>
+        {!gameSession ? (
+          <Lobby onJoin={handleJoin} />
+        ) : (
+          <GameRoom
+            roomId={gameSession.roomId}
+            playerId={gameSession.playerId}
+            onLeave={handleLeave}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

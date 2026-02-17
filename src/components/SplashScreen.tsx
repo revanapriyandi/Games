@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 interface SplashScreenProps {
@@ -24,27 +23,20 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
 
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-black text-white z-50">
-      <motion.div
-        initial={{ scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="mb-8 text-center"
-      >
+      <div className="mb-8 text-center animate-fade-in-scale opacity-0">
         <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-orange-500 drop-shadow-lg">
           Snakes & Ladders
         </h1>
         <p className="text-lg md:text-xl text-gray-300 mt-2 tracking-widest uppercase">
           Ultimate Challenge Edition
         </p>
-      </motion.div>
+      </div>
 
       {/* Progress Bar Container */}
       <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden relative">
-        <motion.div
-          className="h-full bg-gradient-to-r from-yellow-400 to-orange-600"
-          initial={{ width: "0%" }}
-          animate={{ width: `${progress}%` }}
-          transition={{ ease: "linear" }}
+        <div
+          className="h-full bg-gradient-to-r from-yellow-400 to-orange-600 transition-all duration-100 ease-linear"
+          style={{ width: `${progress}%` }}
         />
       </div>
       

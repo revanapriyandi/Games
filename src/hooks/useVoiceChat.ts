@@ -42,7 +42,17 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      leaveVoice();
+      // We cannot call leaveVoice here because it's async and depends on state
+      // Instead, we just cleanup refs.
+      if (localStreamRef.current) {
+         localStreamRef.current.getTracks().forEach(track => track.stop());
+      }
+      if (audioContextRef.current) {
+         audioContextRef.current.close();
+      }
+      if (animationFrameRef.current) {
+         cancelAnimationFrame(animationFrameRef.current);
+      }
     };
   }, []);
 
@@ -96,6 +106,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
 
   const setupAudioAnalysis = (stream: MediaStream, id: string) => {
     if (!audioContextRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
     }
 
@@ -208,6 +219,7 @@ export function useVoiceChat(roomId: string, playerId: string): VoiceChatState {
 
             // Iterate over signals from this sender
             // Note: Firebase lists might be objects with push keys
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             for (const [key, signal] of Object.entries(signals as Record<string, any>)) {
                  if (!signal) continue;
 

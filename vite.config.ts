@@ -5,4 +5,19 @@ import tailwindcss from "@tailwindcss/vite";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          firebase: ['firebase/app', 'firebase/database', 'firebase/auth'],
+          framer: ['framer-motion'],
+          ui: ['@radix-ui/react-slot', 'class-variance-authority', 'clsx', 'tailwind-merge', 'lucide-react'],
+          ai: ['@google/generative-ai', '@google/genai'],
+          zoom: ['react-zoom-pan-pinch'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
+  },
 });
