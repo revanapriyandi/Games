@@ -38,6 +38,7 @@ export interface Player {
   doubleDice?: boolean;
   extraTurn?: boolean;
   giveUpCount?: number;
+  chatMessage?: string;
 }
 
 /** AI-generated game content based on user's theme */

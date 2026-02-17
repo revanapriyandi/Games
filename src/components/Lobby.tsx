@@ -41,8 +41,9 @@ export function Lobby({ onJoin }: LobbyProps) {
       }
       const { roomId, playerId } = await createRoom(name, roleId, avatarUrl, aiConfig);
       onJoin(roomId, playerId);
-    } catch {
-      setError("Gagal membuat room");
+    } catch (err) {
+      console.error("Create room error:", err);
+      setError("Gagal membuat room: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsLoading(false);
     }

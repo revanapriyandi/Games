@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { SplashScreen } from './components/SplashScreen';
 import { Lobby } from './components/Lobby';
 import { GameRoom } from './components/GameRoom';
-import { BackgroundMusic } from './components/BackgroundMusic';
 import { leaveRoom } from './lib/game';
 
 function App() {
@@ -42,7 +41,6 @@ function App() {
           onLeave={handleLeave}
         />
       )}
-      <BackgroundMusic />
     </div>
   );
 }
