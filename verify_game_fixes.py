@@ -5,6 +5,10 @@ def run():
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
 
+        # Capture console logs
+        page.on("console", lambda msg: print(f"BROWSER CONSOLE: {msg.text}"))
+        page.on("pageerror", lambda err: print(f"BROWSER ERROR: {err}"))
+
         try:
             print("Navigating to Game Room...")
             page.goto("http://localhost:3001")
@@ -16,33 +20,38 @@ def run():
             create_btn.click()
 
             print("Waiting for room to load...")
-            # If we see "KELUAR" button, we are in room
-            # Increased timeout for slow Firebase init
-            expect(page.get_by_text("KELUAR")).to_be_visible(timeout=20000)
+            expect(page.get_by_text("KELUAR")).to_be_visible(timeout=30000)
 
-            # 1. Verify Leave Button
-            print("Verifying Leave Button...")
-            leave_btn = page.get_by_text("KELUAR")
-            expect(leave_btn).to_be_visible()
+            # Wait for Start Game button
+            start_btn = page.locator("button:has-text('MULAI PERMAINAN')")
+            if start_btn.is_visible():
+                print("Found Start Game button. Clicking...")
+                start_btn.click()
+            else:
+                print("Start Game button not found immediately. Checking if already playing...")
 
-            # 2. Verify Dice exists
-            # Dice might be loaded inside GameControls
             print("Verifying Dice...")
+            page.wait_for_timeout(5000) # Wait for game start sync
 
-            # It might take a moment for game state to sync and show controls
-            page.wait_for_timeout(3000)
-
-            # The dice is a motion.div with role="button" or just find by some other attribute?
-            # In Dice.tsx: role="button"
+            # Locate dice button. In Dice.tsx, it's a div with role="button" inside GameControls
+            # We look for something clickable.
+            # Assuming it's the large dice area.
             dice = page.locator("div[role='button']").first
 
-            # If dice is not found, maybe look for text "Lempar Dadu"?
-            # Or "Menunggu..." if disabled.
-            # Let's just take a screenshot to debug visually.
+            if dice.is_visible():
+                print("Dice found! Clicking...")
+                dice.click()
+                print("Clicked dice.")
 
-            # 3. Take screenshot
-            print("Taking screenshot...")
-            page.screenshot(path="/home/jules/verification/game_room_fix.png")
+                # Wait for roll animation and result
+                page.wait_for_timeout(5000)
+
+                print("Taking screenshot after roll...")
+                page.screenshot(path="/home/jules/verification/after_roll.png")
+            else:
+                print("Dice not found or not visible!")
+                page.screenshot(path="/home/jules/verification/no_dice.png")
+
             print("Success!")
 
         except Exception as e:

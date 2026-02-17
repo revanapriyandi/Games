@@ -3,6 +3,7 @@ import { ref, update } from "firebase/database";
 import { getGameState } from "./core";
 import { SNAKES_LADDERS } from "../constants";
 import { calculateMovementOutcome } from "./movement";
+import { appendLogAndChat } from "./actions";
 
 export async function markChallengeComplete(roomId: string) {
   const gameState = await getGameState(roomId);
@@ -74,9 +75,7 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   }
 
   // Add log entry
-  const newLogs = [...(gameState.logs || []), logMessage, ...extraLogs];
-  if (newLogs.length > 50) newLogs.shift();
-  updates[`rooms/${roomId}/logs`] = newLogs;
+  appendLogAndChat(roomId, gameState.logs || [], [logMessage, ...extraLogs], updates);
 
   await update(ref(db), updates);
 }
