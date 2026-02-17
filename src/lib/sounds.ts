@@ -309,37 +309,114 @@ export function playCardUseSound() {
 }
 
 
-/** World Event: Deep boom + magical shimmer */
-export function playWorldEventSound() {
+/** World Event: Specific sounds for each type */
+export function playWorldEventSound(type?: 'earthquake' | 'wind' | 'fog') {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
 
-    // Deep Boom
-    const boom = ctx.createOscillator();
-    const boomGain = ctx.createGain();
-    boom.type = "triangle";
-    boom.frequency.setValueAtTime(100, now);
-    boom.frequency.exponentialRampToValueAtTime(30, now + 1.5);
-    boomGain.gain.setValueAtTime(0.3, now);
-    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-    boom.connect(boomGain).connect(ctx.destination);
-    boom.start(now);
-    boom.stop(now + 1.6); 
-
-    // Magic Shimmer
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
-    notes.forEach((freq, i) => {
-        const osc = ctx.createOscillator();
+    if (type === 'earthquake') {
+        // Low Rumble (AM synthesis or multiple low oscillators)
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, now + i * 0.05);
-        gain.gain.setValueAtTime(0, now + i * 0.05);
-        gain.gain.linearRampToValueAtTime(0.1, now + i * 0.05 + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.8);
-        osc.connect(gain).connect(ctx.destination);
-        osc.start(now + i * 0.05);
-        osc.stop(now + i * 0.05 + 0.9);
-    });
+
+        osc1.type = "sawtooth";
+        osc1.frequency.setValueAtTime(50, now);
+        osc1.frequency.linearRampToValueAtTime(30, now + 2.0);
+
+        osc2.type = "square";
+        osc2.frequency.setValueAtTime(55, now);
+        osc2.frequency.linearRampToValueAtTime(35, now + 2.0);
+
+        // LFO for shaking effect
+        const lfo = ctx.createOscillator();
+        lfo.frequency.value = 15;
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 500;
+        lfo.connect(lfoGain).connect(gain.gain); // Modulate volume roughly
+        lfo.start(now);
+        lfo.stop(now + 2.0);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0, now + 2.0);
+
+        // Lowpass filter to muffle it
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.value = 150;
+
+        osc1.connect(filter).connect(gain).connect(ctx.destination);
+        osc2.connect(filter).connect(gain).connect(ctx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 2.0);
+        osc2.stop(now + 2.0);
+
+    } else if (type === 'wind') {
+        // Pink/White Noise "Whoosh"
+        const bufferSize = ctx.sampleRate * 2.5; // 2.5 seconds
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1); // White noise
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.Q.value = 1; // Bandwidth
+        filter.frequency.setValueAtTime(200, now);
+        filter.frequency.exponentialRampToValueAtTime(1000, now + 1.0); // Sweep up
+        filter.frequency.exponentialRampToValueAtTime(300, now + 2.5);  // Sweep down
+
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.5);
+        gain.gain.linearRampToValueAtTime(0, now + 2.5);
+
+        noise.connect(filter).connect(gain).connect(ctx.destination);
+        noise.start(now);
+
+    } else if (type === 'fog') {
+        // Eerie Chord (Diminished/Minor) - Spooky Pad
+        // Notes: C4, Eb4, Gb4, A4 (Diminished 7th)
+        const notes = [261.63, 311.13, 369.99, 440.00]; 
+        
+        notes.forEach((freq) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "triangle";
+            osc.frequency.setValueAtTime(freq, now);
+            
+            // Slow attack and release
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.08, now + 1.5); // Slow rise
+            gain.gain.linearRampToValueAtTime(0.0, now + 4.0); // Long fade
+
+            // Slight detune for eeriness
+            osc.detune.setValueAtTime((Math.random() - 0.5) * 20, now);
+
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 4.0);
+        });
+
+    } else {
+        // Fallback / Generic Boom
+        const boom = ctx.createOscillator();
+        const boomGain = ctx.createGain();
+        boom.type = "triangle";
+        boom.frequency.setValueAtTime(100, now);
+        boom.frequency.exponentialRampToValueAtTime(30, now + 1.5);
+        boomGain.gain.setValueAtTime(0.3, now);
+        boomGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+        boom.connect(boomGain).connect(ctx.destination);
+        boom.start(now);
+        boom.stop(now + 1.6); 
+    }
 }
 
 // ============================

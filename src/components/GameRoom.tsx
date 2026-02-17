@@ -48,10 +48,10 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     // Play World Event Sound
     useEffect(() => {
-        if (activeEventId) {
-             playWorldEventSound();
+        if (activeEventId && gameState?.activeWorldEvent?.type) {
+             playWorldEventSound(gameState.activeWorldEvent.type);
         }
-    }, [activeEventId]);
+    }, [activeEventId, gameState?.activeWorldEvent?.type]);
 
     // Sound alert when stakes are accepted
     const lastStakeCountRef = useRef(0);
