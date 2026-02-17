@@ -12,9 +12,10 @@ interface BoardProps {
     activePortalCell?: number | null;
     portals?: Record<number, number>;
     activeCardEffect?: ActiveCardEffect | null;
+    speakingPlayers?: Record<string, boolean>;
 }
 
-export function Board({ players, displayPositions, thinkingPlayerId, activePortalCell, portals, activeCardEffect }: BoardProps) {
+export function Board({ players, displayPositions, thinkingPlayerId, activePortalCell, portals, activeCardEffect, speakingPlayers }: BoardProps) {
     // Use displayPositions directly if provided, otherwise fallback to player.position
     // This avoids unnecessary state synchronization and re-renders
     const currentPositions = displayPositions ||
@@ -80,6 +81,7 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
                                     displayPosition={currentPositions[player.id] ?? player.position}
                                     thinkingPlayerId={thinkingPlayerId}
                                     activeCardEffect={activeCardEffect}
+                                    isSpeaking={speakingPlayers?.[player.id]}
                                 />
                             ))}
                         </TransformComponent>
