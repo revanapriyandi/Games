@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
 import type { Player } from "../../lib/types";
 import { kickPlayer, startGame } from "../../lib/game";
@@ -20,6 +21,7 @@ interface GameWaitingProps {
 }
 
 export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes }: GameWaitingProps) {
+    const [isStakesModalOpen, setIsStakesModalOpen] = useState(false);
     const hasStakes = !!stakes && stakes.trim().length > 0;
     const allAccepted = !hasStakes || (stakesAcceptedBy && players.every(p => stakesAcceptedBy.includes(p.id)));
     const iAccepted = !hasStakes || (stakesAcceptedBy && stakesAcceptedBy.includes(playerId));
@@ -152,7 +154,7 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                         </div>
                     </div>
                 ) : (
-                    <div className="text-sm font-medium text-white italic">
+                    <div className="text-sm font-medium text-white italic truncate max-w-[250px] mx-auto">
                         "{stakes || "Belum ada taruhan..."}"
                     </div>
                 )}
@@ -160,13 +162,21 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                 {/* Agreement Button */}
                 {hasStakes && (
                     <div className="mt-4 flex flex-col items-center gap-2">
-                        {!iAccepted && (
+                        {!iAccepted ? (
                             <Button
-                                onClick={onAcceptStakes}
+                                onClick={() => setIsStakesModalOpen(true)}
                                 size="sm"
                                 className="bg-green-600 hover:bg-green-500 text-white font-bold animate-pulse shadow-lg shadow-green-900/20"
                             >
-                                👍 SETUJU DENGAN TARUHAN
+                                👍 TINJAU & SETUJU
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={() => setIsStakesModalOpen(true)}
+                                size="sm"
+                                className="bg-white/10 hover:bg-white/20 text-gray-300 font-bold border border-white/10"
+                            >
+                                📜 LIHAT TARUHAN
                             </Button>
                         )}
                         <div className="text-[10px] text-gray-400 uppercase tracking-wider">
@@ -175,6 +185,24 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     </div>
                 )}
             </div>
+
+            {/* Stakes Modal */}
+            <AnimatePresence>
+                {isStakesModalOpen && stakes && (
+                    <StakesModal
+                        stakes={stakes}
+                        onClose={() => setIsStakesModalOpen(false)}
+                        onAccept={() => {
+                            onAcceptStakes?.();
+                            setIsStakesModalOpen(false);
+                        }}
+                        players={players}
+                        stakesAcceptedBy={stakesAcceptedBy}
+                        playerId={playerId}
+                    />
+                )}
+            </AnimatePresence>
+
 
             {/* Actions */}
             <div className="space-y-3">
@@ -205,6 +233,82 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     TINGGALKAN ROOM
                 </Button>
             </div>
+        </motion.div>
+    );
+}
+
+interface StakesModalProps {
+    stakes: string;
+    onClose: () => void;
+    onAccept: () => void;
+    players: Player[];
+    stakesAcceptedBy?: string[];
+    playerId: string;
+}
+
+function StakesModal({ stakes, onClose, onAccept, players, stakesAcceptedBy, playerId }: StakesModalProps) {
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="bg-slate-900 border border-yellow-500/30 w-full max-w-md p-6 rounded-2xl shadow-2xl relative"
+            >
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2">
+                    <div className="bg-yellow-500 text-black p-3 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.5)] border-4 border-slate-900">
+                        <Crown size={32} fill="currentColor" />
+                    </div>
+                </div>
+
+                <h3 className="text-yellow-400 text-center font-bold text-lg mt-6 mb-2 uppercase tracking-widest">
+                    Kesepakatan Taruhan
+                </h3>
+                
+                <div className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10">
+                    <p className="text-white text-lg font-medium text-center leading-relaxed">
+                        "{stakes}"
+                    </p>
+                </div>
+
+                <div className="mb-6">
+                    <h4 className="text-[10px] text-gray-400 uppercase tracking-widest mb-2 text-center">Status Pemain</h4>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        {players.map((p) => {
+                            const agreed = stakesAcceptedBy?.includes(p.id);
+                            return (
+                                <div key={p.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-full border text-xs ${
+                                    agreed 
+                                    ? "bg-green-500/20 border-green-500/40 text-green-300"
+                                    : "bg-white/5 border-white/10 text-gray-500 grayscale opacity-50"
+                                }`}>
+                                    <img src={getAvatarImage(p.avatar)} className="w-4 h-4" />
+                                    <span>{p.name}</span>
+                                    {agreed && <span>✅</span>}
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" onClick={onClose} className="border-white/10 hover:bg-white/5 text-gray-400">
+                        Kembali
+                    </Button>
+                    <Button 
+                        onClick={onAccept} 
+                        className="bg-green-600 hover:bg-green-500 text-white font-bold"
+                        disabled={stakesAcceptedBy?.includes(playerId)}
+                    >
+                        {stakesAcceptedBy?.includes(playerId) ? "Sudah Setuju 👍" : "Saya Setuju 🤝"}
+                    </Button>
+                </div>
+            </motion.div>
         </motion.div>
     );
 }

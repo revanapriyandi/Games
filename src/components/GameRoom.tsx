@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { playCard, clearCardEffect, updateStakes, acceptStakes } from "../lib/game";
-import { playCardUseSound, playWorldEventSound } from "../lib/sounds";
+import { playCardUseSound, playWorldEventSound, playDiceResultSound } from "../lib/sounds";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
 import { useVoiceChat } from "../hooks/useVoiceChat";
@@ -52,6 +52,28 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
              playWorldEventSound();
         }
     }, [activeEventId]);
+
+    // Sound alert when stakes are accepted
+    const lastStakeCountRef = useRef(0);
+    const [stakesNotification, setStakesNotification] = useState<string | null>(null);
+
+    useEffect(() => {
+        const currentCount = gameState?.stakesAcceptedBy?.length || 0;
+        if (currentCount > lastStakeCountRef.current && currentCount > 0) {
+             playDiceResultSound(); 
+             const players = Object.values(gameState?.players || {});
+             const lastAccepterId = gameState?.stakesAcceptedBy?.[gameState.stakesAcceptedBy.length - 1]; 
+             const lastAccepter = players.find(p => p.id === lastAccepterId);
+             if (lastAccepter) {
+                 setTimeout(() => {
+                     setStakesNotification(`${lastAccepter.name} menyetujui taruhan! 🤝`);
+                     setTimeout(() => setStakesNotification(null), 3000);
+                 }, 0);
+             }
+        }
+        lastStakeCountRef.current = currentCount;
+    }, [gameState?.stakesAcceptedBy, gameState?.players]);
+
 
     const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
@@ -123,12 +145,22 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 isChatOpen={isChatOpen}
             />
 
+            {/* Stakes Notification Toast */}
+            {stakesNotification && (
+                <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right fade-in duration-300">
+                    <div className="bg-green-600/90 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-green-400/30 backdrop-blur-md">
+                        <span className="text-xl">🤝</span>
+                        <span className="font-bold text-sm">{stakesNotification}</span>
+                    </div>
+                </div>
+            )}
+
             {/* Theme badge */}
             {gameState.aiConfig && (
                 <div className="fixed top-14 left-3 z-30 pointer-events-none">
                     <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-900/80 to-indigo-900/80 border border-purple-500/40 text-[10px] md:text-xs text-purple-200 font-bold shadow-[0_4px_15px_rgba(168,85,247,0.3)] backdrop-blur-md flex items-center gap-2">
                         <span className="animate-pulse">✨</span> 
-                        <span className="uppercase tracking-wider">{gameState.aiConfig.theme}</span>
+                        <span className="uppercase tracking-wider max-w-[120px] truncate">{gameState.aiConfig.theme}</span>
                     </div>
                 </div>
             )}
