@@ -11,9 +11,11 @@ interface PlayerTokenProps {
     thinkingPlayerId?: string | null;
     activeCardEffect?: ActiveCardEffect | null;
     isSpeaking?: boolean;
+    offset?: { x: number, y: number };
+    scale?: number;
 }
 
-export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlayerId, activeCardEffect, isSpeaking }: PlayerTokenProps) {
+export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlayerId, activeCardEffect, isSpeaking, offset = { x: 0, y: 0 }, scale = 1 }: PlayerTokenProps) {
     const pos = displayPosition ?? (player.position || 1);
     const { rowFromTop, colIndex } = getCellPosition(pos);
 
@@ -39,6 +41,15 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                 height: `${cellSize}%`,
             }}
         >
+            <motion.div
+                animate={{ 
+                    x: `${offset.x}%`, 
+                    y: `${offset.y}%`, 
+                    scale: scale 
+                }}
+                transition={{ duration: 0.3, type: "spring" }}
+                className="w-full h-full relative flex flex-col items-center justify-center"
+            >
             {/* Player Name */}
             <div className="bg-black/80 text-[5px] md:text-[7px] text-white px-1 rounded font-bold whitespace-nowrap border border-white/20 leading-tight z-40 relative">
                 {player.name.substring(0, 4)}
@@ -148,6 +159,7 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     {activeCardEffect.emoji}
                 </motion.div>
             )}
+            </motion.div>
         </motion.div>
     );
 }

@@ -157,10 +157,10 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
             {/* Theme badge */}
             {gameState.aiConfig && (
-                <div className="fixed top-14 left-3 z-30 pointer-events-none">
-                    <div className="px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-900/80 to-indigo-900/80 border border-purple-500/40 text-[10px] md:text-xs text-purple-200 font-bold shadow-[0_4px_15px_rgba(168,85,247,0.3)] backdrop-blur-md flex items-center gap-2">
+                <div className="fixed top-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+                    <div className="px-5 py-1.5 rounded-full bg-gradient-to-r from-purple-900/90 to-indigo-900/90 border border-purple-500/30 text-[10px] md:text-xs text-purple-200 font-bold shadow-lg backdrop-blur-md flex items-center gap-2">
                         <span className="animate-pulse">✨</span> 
-                        <span className="uppercase tracking-wider max-w-[120px] truncate">{gameState.aiConfig.theme}</span>
+                        <span className="uppercase tracking-wider max-w-[200px] truncate">{gameState.aiConfig.theme}</span>
                     </div>
                 </div>
             )}
