@@ -157,7 +157,7 @@ export function Lobby({ onJoin }: LobbyProps) {
                 {ROLES.map((role) => (
                   <button
                     key={role.id}
-                    onClick={() => setRoleId(role.id as any)}
+                    onClick={() => setRoleId(role.id)}
                     className={`
                       p-2 rounded-xl border transition-all flex flex-col items-center gap-1
                       ${roleId === role.id

@@ -21,6 +21,7 @@
     "playwright": "^1.58.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-zoom-pan-pinch": "^3.7.0",
     "tailwind-merge": "^3.4.1"
   },
   "devDependencies": {
