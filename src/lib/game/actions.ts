@@ -88,7 +88,7 @@ export async function rollDice(roomId: string, playerId: string) {
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   const updates: Record<string, unknown> = {};
-  let logs = [...(gameState.logs || [])];
+  const logs = [...(gameState.logs || [])];
 
   if (hasPortal && !shieldBlocked && !ninjaDodged) {
     // Builder Logic: +2 steps on ladder
