@@ -79,6 +79,7 @@ export interface GameState {
   currentPenalty?: { type: 'steps' | 'skip_turn', value: number };
   currentTreasure?: TreasureCard | null;
   activeCardEffect?: ActiveCardEffect | null;
+  currentRoleSelection?: string[] | null;
 }
 
 /** Response from Gemini for lobby setup */

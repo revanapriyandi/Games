@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { SNAKES_LADDERS } from "../../lib/game";
-import { CHALLENGE_CELLS, TREASURE_CELLS } from "../../lib/constants";
+import { CHALLENGE_CELLS, TREASURE_CELLS, ROLE_CELLS } from "../../lib/constants";
 import { BoardCell } from "./BoardCell";
 import { getCellPosition } from "./utils";
 
@@ -36,6 +36,7 @@ export const BoardGrid = memo(function BoardGrid({ portals, activePortalCell }: 
                             portal={activePortals[cellNum]}
                             isChallenge={CHALLENGE_CELLS.has(cellNum)}
                             isTreasure={TREASURE_CELLS.has(cellNum)}
+                            isRole={ROLE_CELLS.has(cellNum)}
                             activePortalCell={activePortalCell}
                         />
                     );

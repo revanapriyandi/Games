@@ -106,3 +106,8 @@ export const TREASURE_CARDS = [
 export const TREASURE_CELLS = new Set([
   3, 7, 11, 16, 23, 32, 37, 43, 47, 53, 59, 67, 73, 83, 89
 ]);
+
+/** Cells where class selection shrines appear (~10 cells) */
+export const ROLE_CELLS = new Set([
+  6, 13, 19, 26, 34, 41, 46, 56, 61, 68, 77, 86, 94, 97
+]);

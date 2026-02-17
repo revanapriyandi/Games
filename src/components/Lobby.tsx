@@ -6,7 +6,6 @@ import { generateGameContent } from "../lib/gemini";
 import { motion, AnimatePresence } from "framer-motion";
 import { AvatarSelector } from "./ui/AvatarSelector";
 import { THEME_PRESETS, getRandomName } from "../lib/constants";
-import { ROLES, getRole } from "../lib/roles";
 import { getAvatarUrl } from "../lib/avatar";
 import type { AIConfig } from "../lib/types";
 
@@ -16,7 +15,6 @@ interface LobbyProps {
 
 export function Lobby({ onJoin }: LobbyProps) {
   const [name, setName] = useState(() => getRandomName());
-  const [roleId, setRoleId] = useState(ROLES[0].id);
   // Default avatar based on random name
   const [avatarUrl, setAvatarUrl] = useState(() => getAvatarUrl('adventurer', name));
 
@@ -29,10 +27,6 @@ export function Lobby({ onJoin }: LobbyProps) {
   const [customTheme, setCustomTheme] = useState("");
 
   const activeTheme = selectedPreset === "custom" ? customTheme.trim() : selectedPreset;
-  const currentRole = getRole(roleId);
-
-  // Update avatar if name changes (optional, but maybe nice? No, let's keep them separate so user can customize)
-  // Actually, let's NOT auto-update avatar when name changes to respect manual selection.
 
   const handleCreate = async () => {
     if (!name) return setError("Masukkan nama kamu");
@@ -45,7 +39,7 @@ export function Lobby({ onJoin }: LobbyProps) {
         const content = await generateGameContent(activeTheme);
         aiConfig = { theme: activeTheme, ...content };
       }
-      const { roomId, playerId } = await createRoom(name, roleId, avatarUrl, aiConfig);
+      const { roomId, playerId } = await createRoom(name, avatarUrl, aiConfig);
       onJoin(roomId, playerId);
     } catch (err) {
       console.error("Create room error:", err);
@@ -61,7 +55,7 @@ export function Lobby({ onJoin }: LobbyProps) {
     setIsLoading(true);
     setError("");
     try {
-      const { roomId, playerId } = await joinRoom(roomCode.toUpperCase(), name, roleId, avatarUrl);
+      const { roomId, playerId } = await joinRoom(roomCode.toUpperCase(), name, avatarUrl);
       onJoin(roomId, playerId);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Gagal bergabung");
@@ -96,12 +90,12 @@ export function Lobby({ onJoin }: LobbyProps) {
               >
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
 
-                {/* Role Badge */}
-                <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 shadow-lg">
-                  <span className="text-2xl">{currentRole?.emoji}</span>
+                 {/* No Role Badge initially */}
+                 <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 flex items-center gap-2 shadow-lg">
+                  <span className="text-2xl">🗡️</span>
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">{currentRole?.name}</span>
-                    <span className="text-[10px] text-gray-400">Class</span>
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">Novice</span>
+                    <span className="text-[10px] text-gray-400">No Class</span>
                   </div>
                 </div>
               </motion.div>
@@ -112,10 +106,9 @@ export function Lobby({ onJoin }: LobbyProps) {
               <p className="text-indigo-300/80 font-medium">Ready for Adventure</p>
             </div>
 
-            {/* Role Ability Preview */}
-             <div className="bg-white/5 border border-white/10 p-4 rounded-xl max-w-xs text-center backdrop-blur-sm">
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-bold">Special Ability</p>
-                <p className="text-sm text-gray-200">{currentRole?.ability}</p>
+            <div className="bg-white/5 border border-white/10 p-4 rounded-xl max-w-xs text-center backdrop-blur-sm">
+                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1 font-bold">Objective</p>
+                <p className="text-sm text-gray-200">Find a Class Shrine to unlock your true potential!</p>
              </div>
           </motion.div>
         </div>
@@ -148,28 +141,6 @@ export function Lobby({ onJoin }: LobbyProps) {
                 onSelect={setAvatarUrl}
                 initialAvatar={avatarUrl}
               />
-            </div>
-
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Choose Class</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {ROLES.map((role) => (
-                  <button
-                    key={role.id}
-                    onClick={() => setRoleId(role.id)}
-                    className={`
-                      p-2 rounded-xl border transition-all flex flex-col items-center gap-1
-                      ${roleId === role.id
-                        ? "bg-indigo-600/20 border-indigo-500/50 text-white shadow-lg shadow-indigo-500/10"
-                        : "bg-black/20 border-white/5 text-gray-400 hover:bg-white/5 hover:border-white/10"}
-                    `}
-                  >
-                    <span className="text-2xl">{role.emoji}</span>
-                    <span className="text-xs font-bold">{role.name}</span>
-                  </button>
-                ))}
-              </div>
             </div>
 
             {/* AI Theme */}

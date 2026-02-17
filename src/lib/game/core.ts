@@ -1,7 +1,7 @@
 import { db } from "../firebase";
 import { ref, set, get, child, push, onValue, update, remove } from "firebase/database";
 import type { Player, GameState, AIConfig } from "../types";
-import { AVATAR_ORDER, MAX_PLAYERS, TREASURE_CARDS } from "../constants";
+import { AVATAR_ORDER, MAX_PLAYERS } from "../constants";
 import { generateRoomCode, generateRandomPortals } from "./utils";
 
 export async function getGameState(roomId: string): Promise<GameState> {
@@ -9,7 +9,7 @@ export async function getGameState(roomId: string): Promise<GameState> {
   return snapshot.val() as GameState;
 }
 
-export async function createRoom(playerName: string, role: string, customAvatarUrl?: string, aiConfig?: AIConfig) {
+export async function createRoom(playerName: string, customAvatarUrl?: string, aiConfig?: AIConfig) {
   const roomId = generateRoomCode();
   const playerRef = push(child(ref(db), `rooms/${roomId}/players`));
   const playerId = playerRef.key!;
@@ -21,11 +21,10 @@ export async function createRoom(playerName: string, role: string, customAvatarU
     position: 1,
     isHost: true,
     giveUpCount: 0,
-    role,
+    role: undefined, // Explicitly undefined
   };
 
   if (customAvatarUrl) initialPlayer.customAvatarUrl = customAvatarUrl;
-  if (role === 'mage') initialPlayer.cards = [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]];
 
   const initialGameState: GameState = {
     status: "waiting",
@@ -47,7 +46,7 @@ export async function createRoom(playerName: string, role: string, customAvatarU
   return { roomId, playerId };
 }
 
-export async function joinRoom(roomId: string, playerName: string, role: string, customAvatarUrl?: string) {
+export async function joinRoom(roomId: string, playerName: string, customAvatarUrl?: string) {
   const roomRef = ref(db, `rooms/${roomId}`);
   const snapshot = await get(roomRef);
 
@@ -75,11 +74,10 @@ export async function joinRoom(roomId: string, playerName: string, role: string,
     position: 1,
     isHost: false,
     giveUpCount: 0,
-    role,
+    role: undefined,
   };
 
   if (customAvatarUrl) newPlayer.customAvatarUrl = customAvatarUrl;
-  if (role === 'mage') newPlayer.cards = [TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)]];
 
   await set(ref(db, `rooms/${roomId}/players/${playerId}`), newPlayer);
   return { roomId, playerId };
