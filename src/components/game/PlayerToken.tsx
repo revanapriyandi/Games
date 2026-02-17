@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import type { Player, ActiveCardEffect } from "../../lib/types";
 import { getAvatarImage } from "../KnightAvatar";
 import { getCellPosition } from "./utils";
+import { getRole } from "../../lib/roles";
 
 interface PlayerTokenProps {
     player: Player;
@@ -18,7 +19,8 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
     const cellSize = 10;
     const top = `${rowFromTop * cellSize + 1}%`;
     const left = `${colIndex * cellSize}%`;
-    const avatarImg = getAvatarImage(player.avatar, playerIndex);
+    const avatarImg = player.customAvatarUrl || getAvatarImage(player.avatar, playerIndex);
+    const role = player.role ? getRole(player.role) : null;
 
     const isOverridden = displayPosition !== undefined;
 
@@ -37,9 +39,17 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
             }}
         >
             {/* Player Name */}
-            <div className="bg-black/80 text-[5px] md:text-[7px] text-white px-1 rounded font-bold whitespace-nowrap border border-white/20 leading-tight">
+            <div className="bg-black/80 text-[5px] md:text-[7px] text-white px-1 rounded font-bold whitespace-nowrap border border-white/20 leading-tight z-40 relative">
                 {player.name.substring(0, 4)}
             </div>
+
+            {/* Role Badge */}
+            {role && (
+                <div className="absolute -top-1 -right-1 bg-black/80 text-[8px] rounded-full w-3 h-3 flex items-center justify-center border border-white/20 z-40 shadow-sm" title={role.name}>
+                    {role.emoji}
+                </div>
+            )}
+
             {/* Thinking indicator */}
             {thinkingPlayerId === player.id && (
                 <motion.div
@@ -51,14 +61,18 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     ❓
                 </motion.div>
             )}
-            {/* Knight Image */}
+
+            {/* Avatar Image */}
             <img
                 src={avatarImg}
                 alt={player.name}
-                className={`w-full h-[70%] object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${
+                className={`w-full h-[70%] drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] ${
+                    player.customAvatarUrl ? 'object-cover rounded-full border border-white/20 aspect-square' : 'object-contain'
+                } ${
                     activeCardEffect?.targetId === player.id ? 'brightness-75' : ''
                 }`}
             />
+
             {/* Status badges */}
             <div className="absolute -bottom-1 left-0 right-0 flex justify-center gap-0.5 z-30">
                 {player.hasShield && (
@@ -74,6 +88,7 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     <span className="text-[8px] md:text-[10px] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" title="Skip giliran">⛓️</span>
                 )}
             </div>
+
             {/* Card effect animation on target */}
             {activeCardEffect?.targetId === player.id && (
                 <motion.div
@@ -85,6 +100,7 @@ export function PlayerToken({ player, playerIndex, displayPosition, thinkingPlay
                     {activeCardEffect.emoji}
                 </motion.div>
             )}
+
             {/* Card effect animation on self-use */}
             {activeCardEffect?.userId === player.id && !activeCardEffect?.targetId && (
                 <motion.div

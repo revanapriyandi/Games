@@ -6,6 +6,7 @@ import { generateGameContent } from "../lib/gemini";
 import { motion, AnimatePresence } from "framer-motion";
 import { KNIGHT_AVATARS } from "./KnightAvatar";
 import { THEME_PRESETS, getRandomName } from "../lib/constants";
+import { ROLES, getRole } from "../lib/roles";
 import type { AIConfig } from "../lib/types";
 
 interface LobbyProps {
@@ -14,6 +15,8 @@ interface LobbyProps {
 
 export function Lobby({ onJoin }: LobbyProps) {
   const [name, setName] = useState(() => getRandomName());
+  const [roleId, setRoleId] = useState(ROLES[0].id);
+  const [avatarUrl, setAvatarUrl] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +39,7 @@ export function Lobby({ onJoin }: LobbyProps) {
         const content = await generateGameContent(activeTheme);
         aiConfig = { theme: activeTheme, ...content };
       }
-      const { roomId, playerId } = await createRoom(name, aiConfig);
+      const { roomId, playerId } = await createRoom(name, roleId, avatarUrl, aiConfig);
       onJoin(roomId, playerId);
     } catch {
       setError("Gagal membuat room");
@@ -51,7 +54,7 @@ export function Lobby({ onJoin }: LobbyProps) {
     setIsLoading(true);
     setError("");
     try {
-      const { roomId, playerId } = await joinRoom(roomCode.toUpperCase(), name);
+      const { roomId, playerId } = await joinRoom(roomCode.toUpperCase(), name, roleId, avatarUrl);
       onJoin(roomId, playerId);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Gagal bergabung");
@@ -72,16 +75,6 @@ export function Lobby({ onJoin }: LobbyProps) {
         </h2>
 
         <div className="space-y-4">
-          {/* Knight Preview */}
-          <div className="flex gap-2 justify-center">
-            {KNIGHT_AVATARS.map((a) => (
-              <div key={a.id} className="p-1.5 rounded-lg bg-black/30 border border-white/10">
-                <img src={a.image} alt={a.name} className="w-10 h-10 object-contain" />
-              </div>
-            ))}
-          </div>
-          <p className="text-center text-xs text-gray-400">Ksatria otomatis ditentukan saat bergabung</p>
-
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">Nama Kamu</label>
@@ -91,6 +84,55 @@ export function Lobby({ onJoin }: LobbyProps) {
               placeholder="contoh: Sir Lancelot"
               className="bg-black/20 border-white/10 text-white placeholder:text-gray-500"
             />
+          </div>
+
+           {/* Role Selection */}
+           <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">Pilih Role</label>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {ROLES.map((role) => (
+                <div
+                  key={role.id}
+                  onClick={() => setRoleId(role.id as any)}
+                  className={`flex-shrink-0 w-32 p-3 rounded-xl border cursor-pointer transition-all ${
+                    roleId === role.id
+                      ? "bg-indigo-600/50 border-indigo-400 scale-105"
+                      : "bg-black/30 border-white/10 hover:bg-black/40"
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{role.emoji}</div>
+                  <div className="font-bold text-sm text-white">{role.name}</div>
+                  <div className="text-[10px] text-gray-400 leading-tight">{role.description}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-indigo-300 text-center bg-indigo-900/20 py-1 px-2 rounded-lg border border-indigo-500/20">
+              ⚡ {getRole(roleId)?.ability}
+            </p>
+          </div>
+
+          {/* Avatar Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-300">Avatar</label>
+            <div className="flex gap-2 items-center">
+              <Input
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder="Link Custom GIF/Image (Opsional)"
+                className="bg-black/20 border-white/10 text-white placeholder:text-gray-500 text-sm flex-1"
+              />
+              {avatarUrl ? (
+                <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/20 bg-black/50">
+                  <img src={avatarUrl} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex -space-x-2 opacity-50">
+                  {KNIGHT_AVATARS.slice(0, 3).map((a) => (
+                     <img key={a.id} src={a.image} className="w-8 h-8 rounded-full border border-black bg-black/30" />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* AI Theme Select */}

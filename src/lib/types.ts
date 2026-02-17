@@ -30,6 +30,8 @@ export interface Player {
   avatar: string;
   position: number;
   isHost: boolean;
+  role?: string; // 'ninja' | 'tank' | 'mage' | 'builder'
+  customAvatarUrl?: string;
   skippedTurns?: number;
   cards?: TreasureCard[];
   hasShield?: boolean;
