@@ -91,6 +91,7 @@ export interface GameState {
   } | null;
   stakes?: string | null;
   stakesAcceptedBy?: string[];
+  fogDuration?: number;
 }
 
 /** Response from Gemini for lobby setup */

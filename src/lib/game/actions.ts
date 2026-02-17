@@ -92,16 +92,6 @@ export async function selectRole(roomId: string, playerId: string, roleIdFromSel
   
   appendLogAndChat(roomId, currentLogs, logMessages, updates);
 
-  // Advance Turn
-  const playersIds = Object.keys(gameState.players);
-  if (!player.extraTurn) {
-    const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
-    updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
-  } else {
-    updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-    appendLogAndChat(roomId, currentLogs, [`⚡ ${player.name} menggunakan Bonus Giliran!`], updates);
-  }
-
   await update(ref(db), updates);
 }
 
@@ -246,8 +236,9 @@ export async function rollDice(roomId: string, playerId: string) {
            });
       } else if (randomEvent === 'fog') {
           eventName = "🌫️ KABUT TEBAL!";
-          eventDesc = "Penglihatan terganggu...";
-          // Visual only, maybe hide portals in Board.tsx?
+          eventDesc = "Portal berpindah & tidak terlihat selama 2 putaran!";
+          updates[`rooms/${roomId}/portals`] = generateRandomPortals();
+          updates[`rooms/${roomId}/fogDuration`] = 2;
       }
 
       updates[`rooms/${roomId}/activeWorldEvent`] = {
@@ -328,6 +319,17 @@ export async function rollDice(roomId: string, playerId: string) {
     if (!player.extraTurn) {
       const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
       updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
+
+      // Decrement Fog Duration (Round based)
+      if (nextTurnIndex === 0 && (gameState.fogDuration || 0) > 0) {
+          const newDuration = (gameState.fogDuration || 0) - 1;
+          if (newDuration <= 0) {
+              updates[`rooms/${roomId}/fogDuration`] = null;
+              appendLogAndChat(roomId, gameState.logs || [], ["☀️ Kabut telah hilang! Portals terlihat kembali."], updates);
+          } else {
+              updates[`rooms/${roomId}/fogDuration`] = newDuration;
+          }
+      }
     } else {
       updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
       appendLogAndChat(roomId, currentLogs, [`⚡ ${player.name} menggunakan Bonus Giliran!`], updates);

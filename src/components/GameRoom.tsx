@@ -226,6 +226,8 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     portals={gameState.portals}
                     activeCardEffect={gameState.activeCardEffect}
                     speakingPlayers={speakingPlayers}
+                    fogActive={(gameState.fogDuration || 0) > 0}
+                    worldEventType={gameState.activeWorldEvent?.type}
                 />
             </div>
             

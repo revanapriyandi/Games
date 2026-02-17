@@ -2,6 +2,8 @@ import type { Player, ActiveCardEffect } from "../lib/types";
 import fantasyMap from '../assets/fantasy_map_board.png';
 import { PlayerToken } from "./game/PlayerToken";
 import { BoardGrid } from "./game/BoardGrid";
+import { WorldEventVisuals } from "./game/WorldEventVisuals";
+import { motion } from "framer-motion";
 
 interface BoardProps {
     players: Player[];
@@ -11,6 +13,8 @@ interface BoardProps {
     portals?: Record<number, number>;
     activeCardEffect?: ActiveCardEffect | null;
     speakingPlayers?: Record<string, boolean>;
+    fogActive?: boolean;
+    worldEventType?: 'earthquake' | 'wind' | 'fog' | null;
 }
 
 // Helper to get offset and scale based on index and total count in cell
@@ -45,7 +49,7 @@ function getCollisionProps(index: number, total: number) {
     return { x, y, scale };
 }
 
-export function Board({ players, displayPositions, thinkingPlayerId, activePortalCell, portals, activeCardEffect, speakingPlayers }: BoardProps) {
+export function Board({ players, displayPositions, thinkingPlayerId, activePortalCell, portals, activeCardEffect, speakingPlayers, fogActive, worldEventType }: BoardProps) {
     const currentPositions = displayPositions ||
         Object.fromEntries(players.map(p => [p.id, p.position || 1]));
 
@@ -69,7 +73,13 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
     });
 
     return (
-        <div className="relative w-full max-w-[98vw] md:max-w-[85vh] lg:max-w-[90vh] aspect-square rounded-xl shadow-2xl overflow-hidden border border-[#8B4513]/50 mx-auto select-none">
+        <motion.div 
+            animate={worldEventType === 'earthquake' ? { x: [-2, 2, -2, 2, 0], y: [1, -1, 0] } : {}}
+            transition={{ duration: 0.2, repeat: worldEventType === 'earthquake' ? Infinity : 0 }}
+            className="relative w-full max-w-[98vw] md:max-w-[85vh] lg:max-w-[90vh] aspect-square rounded-xl shadow-2xl overflow-hidden border border-[#8B4513]/50 mx-auto select-none"
+        >
+            <WorldEventVisuals type={worldEventType || null} key={worldEventType || 'none'} />
+
             {/* Fantasy Map Background */}
             <img
                 src={fantasyMap}
@@ -79,7 +89,11 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
             />
 
             {/* Grid & Portals */}
-            <BoardGrid portals={portals} activePortalCell={activePortalCell || null} />
+            <BoardGrid 
+                portals={portals} 
+                activePortalCell={activePortalCell || null} 
+                hidePortals={fogActive}
+            />
 
             {/* Players */}
             {players.map((player, playerIndex) => {
@@ -100,7 +114,7 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
                     />
                 );
             })}
-        </div>
+        </motion.div>
     );
 }
 

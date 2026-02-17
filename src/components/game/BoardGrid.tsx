@@ -7,14 +7,15 @@ import { getCellPosition } from "./utils";
 interface BoardGridProps {
     portals?: Record<number, number>;
     activePortalCell: number | null;
+    hidePortals?: boolean;
 }
 
-export const BoardGrid = memo(function BoardGrid({ portals, activePortalCell }: BoardGridProps) {
+export const BoardGrid = memo(function BoardGrid({ portals, activePortalCell, hidePortals }: BoardGridProps) {
     const cells = Array.from({ length: 100 }, (_, i) => 100 - i);
     const activePortals = portals || SNAKES_LADDERS;
-
-    // Separate portals into ladders (up) and snakes (down)
-    const portalList = Object.entries(activePortals).map(([from, to]) => ({
+    
+    // Only calculate lines if visible
+    const portalList = hidePortals ? [] : Object.entries(activePortals).map(([from, to]) => ({
         from: Number(from),
         to: Number(to),
         isLadder: Number(to) > Number(from),
@@ -33,7 +34,7 @@ export const BoardGrid = memo(function BoardGrid({ portals, activePortalCell }: 
                             cellNum={cellNum}
                             rowFromTop={rowFromTop}
                             colIndex={colIndex}
-                            portal={activePortals[cellNum]}
+                            portal={hidePortals ? undefined : activePortals[cellNum]}
                             isChallenge={CHALLENGE_CELLS.has(cellNum)}
                             isTreasure={TREASURE_CELLS.has(cellNum)}
                             isRole={ROLE_CELLS.has(cellNum)}
