@@ -7,7 +7,7 @@ import { GameHeader } from "./game/GameHeader";
 import { GameWaiting } from "./game/GameWaiting";
 import { PlayerTabs } from "./game/PlayerTabs";
 import { GameControls } from "./game/GameControls";
-import { ChatControls } from "./game/ChatControls";
+import { RobloxChat } from "./game/RobloxChat";
 import { CardInventory } from "./game/CardInventory";
 import { TargetPicker } from "./game/TargetPicker";
 import { TurnAnnouncement } from "./game/TurnAnnouncement";
@@ -62,15 +62,18 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     if (gameState.status === "waiting") {
         return (
-            <GameWaiting
-                roomId={roomId}
-                players={playersList}
-                playerId={playerId}
-                isHost={!!isHost}
-                onLeave={onLeave}
-                onCopy={handleCopy}
-                copied={copied}
-            />
+            <>
+                <GameWaiting
+                    roomId={roomId}
+                    players={playersList}
+                    playerId={playerId}
+                    isHost={!!isHost}
+                    onLeave={onLeave}
+                    onCopy={handleCopy}
+                    copied={copied}
+                />
+                <RobloxChat roomId={roomId} playerId={playerId} chatMessages={gameState.chat} />
+            </>
         );
     }
 
@@ -106,7 +109,7 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 showResult={showResult}
             />
 
-            <ChatControls roomId={roomId} playerId={playerId} />
+            <RobloxChat roomId={roomId} playerId={playerId} chatMessages={gameState.chat} />
 
             {player && (
                 <CardInventory
