@@ -97,7 +97,6 @@ export function SystemMenu({
                         {/* Room Info */}
                         <div className="px-4 py-3 border-b border-white/10">
                             <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Room ID</div>
-                            <div className="text-[10px] uppercase tracking-wider text-white/40 font-bold mb-1">Room ID</div>
                             <div className="text-xs font-mono text-white select-all mb-2">{roomId}</div>
                             
                             {themeName && (

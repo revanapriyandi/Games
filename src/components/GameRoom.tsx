@@ -85,6 +85,15 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleEditStakes = () => {
+        if (!gameState?.players[playerId]?.isHost) return;
+        const currentStakes = gameState.stakes || "";
+        const newStakes = window.prompt("Edit Taruhan/Hukuman:", currentStakes);
+        if (newStakes !== null) {
+            updateStakes(roomId, newStakes);
+        }
+    };
+
     if (!gameState || !gameState.players) return <div className="text-white text-center mt-20 animate-pulse text-lg">⏳ Loading game state...</div>;
 
     const player = gameState.players[playerId];
@@ -166,10 +175,15 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
             {/* Stakes Badge (In-Game) */}
             {gameState.stakes && (
-                <div className="fixed top-3 right-36 z-20 pointer-events-none hidden md:block">
-                     <div className="px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-[10px] text-yellow-400 font-bold flex items-center gap-2">
+                <div 
+                    onClick={isHost ? handleEditStakes : undefined}
+                    className={`fixed top-3 right-36 z-20 hidden md:block ${isHost ? 'cursor-pointer hover:scale-105 active:scale-95 transition-transform' : 'pointer-events-none'}`}
+                    title={isHost ? "Klik untuk edit taruhan" : "Taruhan"}
+                >
+                     <div className={`px-3 py-1.5 rounded-full bg-yellow-500/10 border border-yellow-500/30 text-[10px] text-yellow-400 font-bold flex items-center gap-2 ${isHost ? 'hover:bg-yellow-500/20' : ''}`}>
                         <span>🏆</span>
                         <span className="max-w-[150px] truncate">"{gameState.stakes}"</span>
+                        {isHost && <span className="text-[8px] opacity-50 ml-1">(Edit)</span>}
                      </div>
                 </div>
             )}
