@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Dices, ChevronRight } from "lucide-react";
 import { Input } from "./input";
@@ -13,46 +13,36 @@ interface AvatarSelectorProps {
 export function AvatarSelector({ onSelect, initialAvatar }: AvatarSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStyle, setSelectedStyle] = useState<AvatarStyle>("adventurer");
-  const [seeds, setSeeds] = useState<string[]>([]);
+
+  // Initialize seeds lazily to avoid useEffect on mount
+  const [seeds, setSeeds] = useState<string[]>(() => Array(6).fill(0).map(() => getRandomSeed()));
   const [isRandomizing, setIsRandomizing] = useState(false);
 
-  const generateRandomSeeds = useCallback(() => {
+  const generateRandomSeeds = () => {
     setIsRandomizing(true);
     const newSeeds = Array(6).fill(0).map(() => getRandomSeed());
     setSeeds(newSeeds);
     setTimeout(() => setIsRandomizing(false), 500);
-  }, []);
+  };
 
-  // Generate initial seeds on mount
-  useEffect(() => {
-    generateRandomSeeds();
-  }, [generateRandomSeeds]);
-
-  // Update seeds when search query changes
-  useEffect(() => {
-    if (searchQuery) {
-      // If searching, generate variations of the query
-      const newSeeds = [
-        searchQuery,
-        `${searchQuery}-1`,
-        `${searchQuery}-2`,
-        `${searchQuery}-x`,
-        `${searchQuery}-super`,
-        `${searchQuery}-99`,
-      ];
-      setSeeds(newSeeds);
-    } else {
-        // If query is cleared, revert to random seeds if we want.
-        // But to avoid "jumping" when typing and backspacing, maybe we should only do it if the user explicitly clears it?
-        // Let's just do nothing or keep previous seeds.
-        // Actually, if I clear the search, showing random options again is good UX.
-        // But we need to be careful not to trigger infinite loops if generateRandomSeeds changes seeds which triggers something else.
-        // seeds state change doesn't trigger this effect.
-        if (searchQuery === "") {
-             generateRandomSeeds();
-        }
-    }
-  }, [searchQuery, generateRandomSeeds]);
+  const handleSearchChange = (val: string) => {
+      setSearchQuery(val);
+      if (val) {
+        // If searching, generate variations of the query
+        const newSeeds = [
+            val,
+            `${val}-1`,
+            `${val}-2`,
+            `${val}-x`,
+            `${val}-super`,
+            `${val}-99`,
+        ];
+        setSeeds(newSeeds);
+      } else {
+        // If query is cleared, revert to random seeds
+        generateRandomSeeds();
+      }
+  };
 
   const handleSelect = (seed: string) => {
     const url = getAvatarUrl(selectedStyle, seed);
@@ -67,7 +57,7 @@ export function AvatarSelector({ onSelect, initialAvatar }: AvatarSelectorProps)
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             placeholder="Cari nama hero..."
             className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:bg-black/40 transition-colors"
           />

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { motion } from "framer-motion";
 import portalLadderImg from '../../assets/portal_ladder.png';
 import portalSnakeImg from '../../assets/portal_snake.png';
@@ -12,7 +13,7 @@ interface BoardCellProps {
     activePortalCell: number | null;
 }
 
-export function BoardCell({ cellNum, rowFromTop, colIndex, portal, isChallenge, isTreasure, activePortalCell }: BoardCellProps) {
+export const BoardCell = memo(function BoardCell({ cellNum, rowFromTop, colIndex, portal, isChallenge, isTreasure, activePortalCell }: BoardCellProps) {
     const isLadder = portal !== undefined && portal > cellNum;
     const isSnake = portal !== undefined && portal < cellNum;
 
@@ -130,4 +131,4 @@ export function BoardCell({ cellNum, rowFromTop, colIndex, portal, isChallenge, 
             )}
         </div>
     );
-}
+});
