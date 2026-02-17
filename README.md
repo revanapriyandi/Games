@@ -10,7 +10,7 @@
 
 A real-time multiplayer board game powered by React, Firebase, and AI. Navigate snakes, ladders, challenges, and card battles with your friends!
 
-[Features](#-features) • [Demo](#-demo) • [Installation](#-installation) • [Usage](#-usage) • [Tech Stack](#-tech-stack)
+[Features](#-features) • [Roadmap](#-roadmap) • [Tech Stack](#-tech-stack) • [Installation](#-installation) • [Usage](#-usage)
 
 </div>
 
@@ -62,6 +62,53 @@ A real-time multiplayer board game powered by React, Firebase, and AI. Navigate 
 - **Double Dice Fix:** The "Double Dice" effect now correctly displays the halved value on the dice (e.g., rolling a 12 shows a 6) with a "x2" indicator, matching the movement logic.
 - **Exit Button:** Restored the missing "KELUAR" (Exit) button in the game header, allowing players to leave the room easily.
 - **Smoother Movement:** Character movement animations have been refactored to better handle Snakes & Ladders, preventing "backward walking" visual glitches.
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Completed (v2.0)
+- Modern lobby & avatar selector system
+- AI-powered challenges dengan Google Gemini
+- Card battle system
+- Real-time multiplayer via Firebase
+- Smooth animations dengan Framer Motion
+- Responsive dark UI dengan glassmorphism
+
+### 🚧 In Progress
+- Performance optimization
+- Mobile touch controls enhancement
+- Bug fixes dan stability improvements
+
+### 📅 Planned Features
+
+#### v3.0 - Enhanced Gameplay (Q2 2026)
+- [ ] Power-ups dan special items
+- [ ] Achievement system
+- [ ] Player statistics dan leaderboard
+- [ ] Sound effects dan background music
+- [ ] Tournament mode
+
+#### v4.0 - Social Features (Q3 2026)
+- [ ] Friend system
+- [ ] Chat dalam game
+- [ ] Spectator mode
+- [ ] Replay system
+- [ ] Custom board themes
+
+#### v5.0 - Advanced Features (Q4 2026)
+- [ ] Custom board editor
+- [ ] AI opponent (single player mode)
+- [ ] Mobile app (React Native)
+- [ ] Multiple game modes
+- [ ] Internationalization (i18n)
+
+### 💡 Future Considerations
+- VR/AR support
+- NFT integration untuk custom avatars
+- Tournament dan esports features
+- Streaming integration
+- Cross-platform play
 
 ---
 
