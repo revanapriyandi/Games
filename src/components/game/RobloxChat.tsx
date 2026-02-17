@@ -54,31 +54,33 @@ export function RobloxChat({ roomId, playerId, chatMessages }: RobloxChatProps) 
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="bg-black/70 backdrop-blur-md w-[280px] md:w-[320px] h-[350px] md:h-[400px] rounded-xl border border-white/10 flex flex-col overflow-hidden pointer-events-auto shadow-2xl"
+                        className="bg-black/80 backdrop-blur-md w-[240px] md:w-[260px] h-[350px] md:h-[400px] rounded-xl border border-white/10 flex flex-col overflow-hidden pointer-events-auto shadow-2xl"
                     >
                         {/* Header */}
-                        <div className="bg-white/5 px-3 py-2 text-xs font-bold text-white/90 border-b border-white/10 flex justify-between items-center">
-                            <span>Chat Room</span>
+                        <div className="bg-white/5 px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-white/70 border-b border-white/10 flex justify-between items-center">
+                            <span>Chat Log</span>
                         </div>
 
                         {/* Messages */}
                         <div
                             ref={scrollRef}
-                            className="flex-1 overflow-y-auto p-3 space-y-1.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
+                            className="flex-1 overflow-y-auto p-2 space-y-1 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent"
                         >
                             {messages.length === 0 && (
-                                <div className="text-white/40 text-xs text-center mt-10 italic">
+                                <div className="text-white/30 text-[10px] text-center mt-10 italic">
                                     Belum ada pesan...
                                 </div>
                             )}
                             {messages.map((msg) => {
                                 const isMe = msg.senderId === playerId;
+                                const isSystem = msg.senderId === "SYSTEM";
                                 return (
-                                    <div key={msg.id} className="text-[13px] leading-snug">
-                                        <span className={`font-bold ${isMe ? "text-yellow-400" : "text-blue-400"}`}>
-                                            [{msg.senderName}]:
+                                    <div key={msg.id} className={`text-[11px] leading-tight ${isSystem ? "opacity-90 py-1 bg-white/5 px-1.5 rounded" : ""}`}>
+                                        <span className={`font-bold ${isSystem ? "text-transparent" : isMe ? "text-yellow-400" : "text-blue-400"}`}>
+                                            {isSystem ? "" : `[${msg.senderName.slice(0, 8)}]:`}
                                         </span>{" "}
-                                        <span className="text-white drop-shadow-sm break-words">
+                                        <span className={`${isSystem ? "text-yellow-100 italic" : "text-white"} drop-shadow-sm break-words`}>
+                                            {isSystem && <span className="mr-1">🎲</span>}
                                             {msg.message}
                                         </span>
                                     </div>

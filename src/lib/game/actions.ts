@@ -6,6 +6,31 @@ import { getGameState } from "./core";
 import { generateRandomPortals } from "./utils";
 import { calculateMovementOutcome } from "./movement";
 
+// Helper to append logs and sync with chat
+export function appendLogAndChat(
+  roomId: string,
+  existingLogs: string[],
+  newMessages: string[],
+  updates: Record<string, unknown>
+): string[] {
+  const finalLogs = [...existingLogs, ...newMessages];
+  if (finalLogs.length > 50) finalLogs.shift(); // Keep last 50 logs
+
+  updates[`rooms/${roomId}/logs`] = finalLogs;
+
+  newMessages.forEach((msg) => {
+    const chatRef = push(child(ref(db), `rooms/${roomId}/chat`));
+    updates[`rooms/${roomId}/chat/${chatRef.key}`] = {
+      senderId: "SYSTEM",
+      senderName: "🎲 GAME",
+      message: msg,
+      timestamp: Date.now(),
+    };
+  });
+
+  return finalLogs;
+}
+
 export async function startGame(roomId: string) {
   await update(ref(db, `rooms/${roomId}`), { status: "playing" });
 }
@@ -20,11 +45,12 @@ export async function rollDice(roomId: string, playerId: string) {
   // Check for skipped turns
   const player = gameState.players[playerId];
   if (player.skippedTurns && player.skippedTurns > 0) {
-    await update(ref(db), {
+    const updates: Record<string, unknown> = {
       [`rooms/${roomId}/players/${playerId}/skippedTurns`]: player.skippedTurns - 1,
       [`rooms/${roomId}/currentTurnIndex`]: (gameState.currentTurnIndex + 1) % playersIds.length,
-      [`rooms/${roomId}/logs`]: [...(gameState.logs || []), `${player.name} melewatkan giliran ini karena sanksi!`]
-    });
+    };
+    appendLogAndChat(roomId, gameState.logs || [], [`${player.name} melewatkan giliran ini karena sanksi!`], updates);
+    await update(ref(db), updates);
     return;
   }
 
@@ -72,7 +98,10 @@ export async function rollDice(roomId: string, playerId: string) {
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   const updates: Record<string, unknown> = {};
-  const logs = [...(gameState.logs || []), ...moveResult.logs];
+
+  // Use helper to add logs and chat messages
+  const currentLogs = gameState.logs || [];
+  appendLogAndChat(roomId, currentLogs, moveResult.logs, updates);
 
   if (moveResult.portal) {
     updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
@@ -86,10 +115,6 @@ export async function rollDice(roomId: string, playerId: string) {
       updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
     }
   }
-
-  // Update logs early if modified
-  if (logs.length > 50) logs.shift();
-  updates[`rooms/${roomId}/logs`] = logs;
 
   // Check for winner
   if (moveResult.finalPosition === 100) {
@@ -156,8 +181,7 @@ export async function rollDice(roomId: string, playerId: string) {
       updates[`rooms/${roomId}/currentTurnIndex`] = nextTurnIndex;
     } else {
       updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = null;
-      logs.push(`⚡ ${player.name} menggunakan Bonus Giliran!`);
-      updates[`rooms/${roomId}/logs`] = logs; // Update logs again if extra turn used
+      appendLogAndChat(roomId, currentLogs, [`⚡ ${player.name} menggunakan Bonus Giliran!`], updates);
     }
 
     await update(ref(db), updates);

@@ -3,6 +3,7 @@ import { ref, update } from "firebase/database";
 import { getGameState } from "./core";
 import { SNAKES_LADDERS } from "../constants";
 import { calculateMovementOutcome } from "./movement";
+import { appendLogAndChat } from "./actions";
 import type { ActiveCardEffect } from "../types";
 
 export async function dismissTreasure(roomId: string) {
@@ -38,7 +39,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
   const updatedCards = cards.filter((_, i) => i !== cardIndex);
 
   const updates: Record<string, unknown> = {};
-  const newLogs = [...(gameState.logs || [])];
+  const logMessages: string[] = [];
 
   // Set active card effect for animation
   const effect: ActiveCardEffect = {
@@ -56,7 +57,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
       if (target.hasShield) {
         updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-        newLogs.push(`🛡️ ${target.name} memblok Kutukan dengan Perisai!`);
+        logMessages.push(`🛡️ ${target.name} memblok Kutukan dengan Perisai!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -65,7 +66,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       }
 
       if (target.role === 'tank') {
-        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Kutukan!`);
+        logMessages.push(`🛡️ ${target.name} (Tank) menangkis Kutukan!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -85,8 +86,8 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         }
 
         // Append move logs (e.g. Ninja dodge, Builder)
-        newLogs.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
-        newLogs.push(...moveResult.logs);
+        logMessages.push(`💀 ${player.name} mengutuk ${target.name} mundur 3 langkah!`);
+        logMessages.push(...moveResult.logs);
 
         effect.targetId = targetId;
         effect.targetName = target.name;
@@ -99,7 +100,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
       if (target.hasShield) {
         updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-        newLogs.push(`🛡️ ${target.name} memblok Skip Giliran dengan Perisai!`);
+        logMessages.push(`🛡️ ${target.name} memblok Skip Giliran dengan Perisai!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -108,7 +109,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       }
 
       if (target.role === 'tank') {
-        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Skip Giliran!`);
+        logMessages.push(`🛡️ ${target.name} (Tank) menangkis Skip Giliran!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -117,13 +118,13 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         updates[`rooms/${roomId}/players/${targetId}/skippedTurns`] = 1;
         effect.targetId = targetId;
         effect.targetName = target.name;
-        newLogs.push(`⏭️ ${player.name} membuat ${target.name} skip 1 giliran!`);
+        logMessages.push(`⏭️ ${player.name} membuat ${target.name} skip 1 giliran!`);
       }
       break;
     }
     case 'double_dice': {
       updates[`rooms/${roomId}/players/${playerId}/doubleDice`] = true;
-      newLogs.push(`🎲 ${player.name} mengaktifkan Dadu Ganda!`);
+      logMessages.push(`🎲 ${player.name} mengaktifkan Dadu Ganda!`);
       break;
     }
     case 'teleport': {
@@ -143,13 +144,13 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
            updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
       }
 
-      newLogs.push(`🌀 ${player.name} teleportasi maju 5 langkah!`);
-      newLogs.push(...moveResult.logs);
+      logMessages.push(`🌀 ${player.name} teleportasi maju 5 langkah!`);
+      logMessages.push(...moveResult.logs);
       break;
     }
     case 'shield': {
       updates[`rooms/${roomId}/players/${playerId}/hasShield`] = true;
-      newLogs.push(`🛡️ ${player.name} mengaktifkan Perisai!`);
+      logMessages.push(`🛡️ ${player.name} mengaktifkan Perisai!`);
       break;
     }
     case 'steal_card': {
@@ -158,7 +159,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
       if (target.hasShield) {
         updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-        newLogs.push(`🛡️ ${target.name} memblok pencurian kartu dengan Perisai!`);
+        logMessages.push(`🛡️ ${target.name} memblok pencurian kartu dengan Perisai!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -167,7 +168,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       }
 
       if (target.role === 'tank') {
-        newLogs.push(`🛡️ ${target.name} (Tank) menangkis pencurian kartu!`);
+        logMessages.push(`🛡️ ${target.name} (Tank) menangkis pencurian kartu!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -175,7 +176,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       } else {
         const targetCards = target.cards || [];
         if (targetCards.length === 0) {
-          newLogs.push(`🦊 ${player.name} mencoba mencuri kartu ${target.name}, tapi dia tidak punya kartu!`);
+          logMessages.push(`🦊 ${player.name} mencoba mencuri kartu ${target.name}, tapi dia tidak punya kartu!`);
         } else {
           const stolenIndex = Math.floor(Math.random() * targetCards.length);
           const stolenCard = targetCards[stolenIndex];
@@ -186,7 +187,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
           // Override updatedCards with the new set including stolen card
           updates[`rooms/${roomId}/players/${playerId}/cards`] = newPlayerCards;
 
-          newLogs.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
+          logMessages.push(`🦊 ${player.name} mencuri kartu ${stolenCard.emoji} ${stolenCard.name} dari ${target.name}!`);
         }
         effect.targetId = targetId;
         effect.targetName = target.name;
@@ -199,7 +200,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
 
       if (target.hasShield) {
         updates[`rooms/${roomId}/players/${targetId}/hasShield`] = null;
-        newLogs.push(`🛡️ ${target.name} memblok Tukar Posisi dengan Perisai!`);
+        logMessages.push(`🛡️ ${target.name} memblok Tukar Posisi dengan Perisai!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -208,7 +209,7 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
       }
 
       if (target.role === 'tank') {
-        newLogs.push(`🛡️ ${target.name} (Tank) menangkis Tukar Posisi!`);
+        logMessages.push(`🛡️ ${target.name} (Tank) menangkis Tukar Posisi!`);
         effect.targetId = targetId;
         effect.targetName = target.name;
         effect.emoji = '🛡️';
@@ -220,13 +221,13 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
         updates[`rooms/${roomId}/players/${targetId}/position`] = myPos;
         effect.targetId = targetId;
         effect.targetName = target.name;
-        newLogs.push(`🔄 ${player.name} bertukar posisi dengan ${target.name}! (${myPos} ↔ ${theirPos})`);
+        logMessages.push(`🔄 ${player.name} bertukar posisi dengan ${target.name}! (${myPos} ↔ ${theirPos})`);
       }
       break;
     }
     case 'extra_turn': {
       updates[`rooms/${roomId}/players/${playerId}/extraTurn`] = true;
-      newLogs.push(`⚡ ${player.name} akan mendapat giliran ekstra!`);
+      logMessages.push(`⚡ ${player.name} akan mendapat giliran ekstra!`);
       break;
     }
   }
@@ -237,8 +238,9 @@ export async function playCard(roomId: string, playerId: string, cardIndex: numb
   }
 
   updates[`rooms/${roomId}/activeCardEffect`] = effect;
-  if (newLogs.length > 50) newLogs.shift();
-  updates[`rooms/${roomId}/logs`] = newLogs;
+
+  // Use helper to update logs and chat
+  appendLogAndChat(roomId, gameState.logs || [], logMessages, updates);
 
   await update(ref(db), updates);
 }
