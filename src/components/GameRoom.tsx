@@ -78,6 +78,10 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const [usingCardIndex, setUsingCardIndex] = useState<number | null>(null);
     const [copied, setCopied] = useState(false);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    
+    // Stakes Editing State
+    const [isEditingStakes, setIsEditingStakes] = useState(false);
+    const [editStakesValue, setEditStakesValue] = useState("");
 
     const handleCopy = () => {
         navigator.clipboard.writeText(roomId);
@@ -87,11 +91,14 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
 
     const handleEditStakes = () => {
         if (!gameState?.players[playerId]?.isHost) return;
-        const currentStakes = gameState.stakes || "";
-        const newStakes = window.prompt("Edit Taruhan/Hukuman:", currentStakes);
-        if (newStakes !== null) {
-            updateStakes(roomId, newStakes);
-        }
+        setEditStakesValue(gameState.stakes || "");
+        setIsEditingStakes(true);
+    };
+
+    const handleSaveStakes = () => {
+        updateStakes(roomId, editStakesValue);
+        setIsEditingStakes(false);
+        // Play notification sound? (Managed by listener)
     };
 
     if (!gameState || !gameState.players) return <div className="text-white text-center mt-20 animate-pulse text-lg">⏳ Loading game state...</div>;
@@ -292,6 +299,45 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 onPortalComplete={handlePortalComplete}
                 onLeave={onLeave}
             />
+
+            {/* Stakes Edit Modal */}
+            {isEditingStakes && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md shadow-2xl p-6">
+                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                            <span>🏆</span> Edit Taruhan & Hukuman
+                        </h3>
+                        
+                        <div className="mb-6">
+                            <label className="block text-xs uppercase tracking-wider text-white/50 font-bold mb-2">
+                                Isi Taruhan Baru
+                            </label>
+                            <textarea
+                                value={editStakesValue}
+                                onChange={(e) => setEditStakesValue(e.target.value)}
+                                className="w-full bg-black/30 border border-white/10 rounded-xl p-4 text-white placeholder:text-white/20 focus:outline-none focus:border-yellow-500/50 transition-colors min-h-[120px] resize-none"
+                                placeholder="Contoh: Yang kalah push up 10x..."
+                                autoFocus
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setIsEditingStakes(false)}
+                                className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleSaveStakes}
+                                className="flex-1 px-4 py-3 rounded-xl font-bold bg-yellow-500 hover:bg-yellow-400 text-black shadow-lg shadow-yellow-500/20 transition-all active:scale-95"
+                            >
+                                Simpan Perubahan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
