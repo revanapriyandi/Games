@@ -2,7 +2,6 @@ import type { Player, ActiveCardEffect } from "../lib/types";
 import fantasyMap from '../assets/fantasy_map_board.png';
 import { PlayerToken } from "./game/PlayerToken";
 import { BoardGrid } from "./game/BoardGrid";
-import { WorldEventVisuals } from "./game/WorldEventVisuals";
 import { motion } from "framer-motion";
 
 interface BoardProps {
@@ -78,8 +77,6 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
             transition={{ duration: 0.2, repeat: worldEventType === 'earthquake' ? Infinity : 0 }}
             className="relative w-full max-w-[98vw] md:max-w-[85vh] lg:max-w-[90vh] aspect-square rounded-xl shadow-2xl overflow-hidden border border-[#8B4513]/50 mx-auto select-none"
         >
-            <WorldEventVisuals type={worldEventType || null} key={worldEventType || 'none'} />
-
             {/* Fantasy Map Background */}
             <img
                 src={fantasyMap}

@@ -23,7 +23,7 @@ export function WorldEventVisuals({ type }: WorldEventVisualsProps) {
     if (!type) return null;
 
     return (
-        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden rounded-xl">
+        <div className="fixed inset-0 z-30 pointer-events-none overflow-hidden">
             {/* Fog Overlay */}
             {type === 'fog' && (
                 <motion.div 

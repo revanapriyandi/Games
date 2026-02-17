@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { playCard, clearCardEffect, updateStakes, acceptStakes } from "../lib/game";
 import { playCardUseSound, playWorldEventSound, playDiceResultSound } from "../lib/sounds";
+import { WorldEventVisuals } from "./game/WorldEventVisuals";
 import { Board } from "./Board";
 import { useGameRoom } from "../hooks/useGameRoom";
 import { useVoiceChat } from "../hooks/useVoiceChat";
@@ -162,6 +163,9 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                 isChatOpen={isChatOpen}
                 themeName={gameState.aiConfig?.theme}
             />
+
+            {/* Fullscreen World Event Visuals */}
+            <WorldEventVisuals type={gameState.activeWorldEvent?.type || null} key={gameState.activeWorldEvent?.type || 'none'} />
 
             {/* Stakes Notification Toast */}
             {stakesNotification && (
