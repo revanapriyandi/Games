@@ -52,6 +52,16 @@ export const DEFAULT_CHALLENGES = [
   "Tirukan gaya jalan bebek sambil keliling ruangan satu putaran.",
   "Selfie dengan ekspresi paling jelek, kirim ke grup keluarga/teman tanpa caption.",
   "Jelaskan kenapa kamu adalah 'Manusia Paling Ganteng/Cantik Sedunia' selama 1 menit tanpa ketawa.",
+  "Telepon mantan atau gebetan bilang 'Haii' doang lalu matikan.",
+  "Baca chat terakhir di WA dengan nada puitis dan penuh drama.",
+  "Joget TikTok yang lagi viral tanpa musik selama 30 detik.",
+  "Tahan nafas selama 20 detik sambil melotot ke pemain sebelah kiri.",
+  "Ngomong pakai bahasa alien (asal bunyi) selama 1 menit.",
+  "Kayang selama 10 detik (kalau bisa), atau hormat ke tembok selama 1 menit.",
+  "Pegang hidungmu dan bicara seperti itu sampai giliranmu berikutnya.",
+  "Update status: 'Aku bau kencur' di sosial mediamu selama 10 menit.",
+  "Cium tembok dengan penuh kasih sayang.",
+  "Jalan mundur setiap kali kamu mau pindah tempat selama game berlangsung.",
 ];
 
 /** Preset theme options for lobby dropdown */
@@ -82,10 +92,10 @@ export function getRandomName(): string {
 
 /** Treasure card definitions */
 export const TREASURE_CARDS = [
-  { id: 'curse_back', name: 'Kutukan Mundur', emoji: '💀', description: 'Kirim musuh mundur 5 langkah!', effectType: 'curse_back' as const, targetType: 'other' as const },
+  { id: 'curse_back', name: 'Kutukan Mundur', emoji: '💀', description: 'Kirim musuh mundur 3 langkah!', effectType: 'curse_back' as const, targetType: 'other' as const },
   { id: 'skip_target', name: 'Lewati Giliran', emoji: '⏭️', description: 'Buat pemain lain skip 1 giliran!', effectType: 'skip_target' as const, targetType: 'other' as const },
   { id: 'double_dice', name: 'Dadu Ganda', emoji: '🎲', description: 'Roll berikutnya dikalikan 2!', effectType: 'double_dice' as const, targetType: 'self' as const },
-  { id: 'teleport', name: 'Teleportasi', emoji: '🌀', description: 'Maju 10 langkah ke depan!', effectType: 'teleport' as const, targetType: 'self' as const },
+  { id: 'teleport', name: 'Teleportasi', emoji: '🌀', description: 'Maju 5 langkah ke depan!', effectType: 'teleport' as const, targetType: 'self' as const },
   { id: 'shield', name: 'Perisai', emoji: '🛡️', description: 'Blok ular atau penalti berikutnya!', effectType: 'shield' as const, targetType: 'self' as const },
   { id: 'steal_card', name: 'Pencuri Kartu', emoji: '🦊', description: 'Curi kartu random dari pemain lain!', effectType: 'steal_card' as const, targetType: 'other' as const },
   { id: 'swap_position', name: 'Tukar Posisi', emoji: '🔄', description: 'Tukar posisi dengan pemain lain!', effectType: 'swap_position' as const, targetType: 'other' as const },

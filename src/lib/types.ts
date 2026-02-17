@@ -35,6 +35,7 @@ export interface Player {
   hasShield?: boolean;
   doubleDice?: boolean;
   extraTurn?: boolean;
+  giveUpCount?: number;
 }
 
 /** AI-generated game content based on user's theme */

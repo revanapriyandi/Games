@@ -71,6 +71,11 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
                         <p className="text-gray-400 text-sm italic mt-1">
                             {isWinner ? "Selamat! Kamu adalah juara sejati!" : "Jangan menyerah, coba lagi!"}
                         </p>
+                        {winner.giveUpCount && winner.giveUpCount > 0 ? (
+                            <p className="text-xs text-red-400 mt-2 font-mono">
+                                (Pernah menyerah {winner.giveUpCount}x tapi tetap menang!)
+                            </p>
+                        ) : null}
                     </div>
 
                     {/* LOSERS LIST */}
@@ -88,6 +93,9 @@ export function WinnerModal({ winnerId, players, currentPlayerId, onReset, onExi
                                             </div>
                                             <div className="text-[10px] text-gray-600">
                                                 Petak {p.position || 1}
+                                                {p.giveUpCount && p.giveUpCount > 0 && (
+                                                    <span className="text-red-500 ml-2 font-mono">🏳️ {p.giveUpCount}x</span>
+                                                )}
                                             </div>
                                         </div>
                                         {p.id === currentPlayerId && (

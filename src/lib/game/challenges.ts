@@ -26,6 +26,10 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   const updates: Record<string, unknown> = {};
   let logMessage = "";
 
+  // Increment giveUpCount
+  const currentGiveUpCount = gameState.players[playerId].giveUpCount || 0;
+  updates[`rooms/${roomId}/players/${playerId}/giveUpCount`] = currentGiveUpCount + 1;
+
   console.log("FAILING CHALLENGE:", { penalty, playerId, currentPos: gameState.players[playerId].position });
 
   if (penalty.type === 'steps') {
