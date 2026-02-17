@@ -49,6 +49,15 @@ export interface AIConfig {
   flavorText: string;
 }
 
+/** Chat message definition */
+export interface ChatMessage {
+  id?: string;
+  senderId: string;
+  senderName: string;
+  message: string;
+  timestamp: number;
+}
+
 /** Complete game state synced via Firebase */
 export interface GameState {
   status: "waiting" | "playing" | "finished";
@@ -59,6 +68,7 @@ export interface GameState {
   currentChallenge: string | null;
   winner: string | null;
   logs: string[];
+  chat?: Record<string, ChatMessage>;
   portalFrom: number | null;
   portalTo: number | null;
   portalType: "ladder" | "snake" | null;

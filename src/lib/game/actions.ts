@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { ref, update, set } from "firebase/database";
+import { ref, update, set, push, child, get } from "firebase/database";
 import { CHALLENGE_CELLS, TREASURE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SNAKES_LADDERS } from "../constants";
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
@@ -227,11 +227,27 @@ export async function resetGame(roomId: string) {
 }
 
 export async function sendChatMessage(roomId: string, playerId: string, message: string) {
-  // Set the message
-  await set(ref(db, `rooms/${roomId}/players/${playerId}/chatMessage`), message);
+  const dbRef = ref(db);
 
-  // Clear it after 5 seconds
+  // 1. Set ephemeral message (for bubbles)
+  await set(child(dbRef, `rooms/${roomId}/players/${playerId}/chatMessage`), message);
+
+  // 2. Add to chat history
+  // Fetch player name first
+  const snapshot = await get(child(dbRef, `rooms/${roomId}/players/${playerId}/name`));
+  const senderName = snapshot.exists() ? snapshot.val() : "Unknown";
+
+  const chatRef = child(dbRef, `rooms/${roomId}/chat`);
+  const newMessageRef = push(chatRef);
+  await set(newMessageRef, {
+    senderId: playerId,
+    senderName,
+    message,
+    timestamp: Date.now()
+  });
+
+  // Clear bubble after 5 seconds
   setTimeout(async () => {
-    await set(ref(db, `rooms/${roomId}/players/${playerId}/chatMessage`), null);
+    await set(child(dbRef, `rooms/${roomId}/players/${playerId}/chatMessage`), null);
   }, 5000);
 }
