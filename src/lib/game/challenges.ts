@@ -1,6 +1,8 @@
 import { db } from "../firebase";
 import { ref, update } from "firebase/database";
 import { getGameState } from "./core";
+import { SNAKES_LADDERS } from "../constants";
+import { calculateMovementOutcome } from "./movement";
 
 export async function markChallengeComplete(roomId: string) {
   const gameState = await getGameState(roomId);
@@ -23,23 +25,46 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   const nextTurnIndex = (gameState.currentTurnIndex + 1) % playersIds.length;
 
   const penalty = gameState.currentPenalty || { type: 'steps', value: 3 };
-  const updates: Record<string, unknown> = {};
+  const updates: Record<string, unknown> = {
+    [`rooms/${roomId}/currentChallenge`]: null,
+    [`rooms/${roomId}/currentPenalty`]: null,
+    [`rooms/${roomId}/currentTurnIndex`]: nextTurnIndex,
+    [`rooms/${roomId}/lastRoll`]: null,
+    [`rooms/${roomId}/portalFrom`]: null,
+    [`rooms/${roomId}/portalType`]: null,
+  };
   let logMessage = "";
+  let extraLogs: string[] = [];
 
   // Increment giveUpCount
   const currentGiveUpCount = gameState.players[playerId].giveUpCount || 0;
   updates[`rooms/${roomId}/players/${playerId}/giveUpCount`] = currentGiveUpCount + 1;
-
-  console.log("FAILING CHALLENGE:", { penalty, playerId, currentPos: gameState.players[playerId].position });
 
   if (penalty.type === 'steps') {
     // Penalty: Move back X steps
     const currentPos = gameState.players[playerId].position || 0;
     // Force value to be a number just in case
     const steps = typeof penalty.value === 'string' ? parseInt(penalty.value) : penalty.value;
-    const newPos = Math.max(1, currentPos - steps);
 
+    const portals = gameState.portals || SNAKES_LADDERS;
+    const player = gameState.players[playerId];
+    const moveResult = calculateMovementOutcome(currentPos, -steps, portals, player);
+
+    const newPos = moveResult.finalPosition;
     updates[`rooms/${roomId}/players/${playerId}/position`] = newPos;
+
+    if (moveResult.portal) {
+       updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+       updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+       updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
+    }
+
+    if (moveResult.shieldUsed) {
+       updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
+    }
+
+    extraLogs = moveResult.logs;
+
     logMessage = `${playerName} menyerah & mundur ${steps} langkah! (Pos: ${currentPos} -> ${newPos})`;
   } else {
     // Penalty: Skip Turn
@@ -49,18 +74,9 @@ export async function failChallenge(roomId: string, playerName: string, playerId
   }
 
   // Add log entry
-  const newLogs = [...(gameState.logs || []), logMessage];
+  const newLogs = [...(gameState.logs || []), logMessage, ...extraLogs];
   if (newLogs.length > 50) newLogs.shift();
-
-  Object.assign(updates, {
-    [`rooms/${roomId}/currentChallenge`]: null,
-    [`rooms/${roomId}/currentPenalty`]: null,
-    [`rooms/${roomId}/currentTurnIndex`]: nextTurnIndex,
-    [`rooms/${roomId}/lastRoll`]: null,
-    [`rooms/${roomId}/portalFrom`]: null,
-    [`rooms/${roomId}/portalType`]: null,
-    [`rooms/${roomId}/logs`]: newLogs,
-  });
+  updates[`rooms/${roomId}/logs`] = newLogs;
 
   await update(ref(db), updates);
 }

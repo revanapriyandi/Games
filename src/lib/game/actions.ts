@@ -4,6 +4,7 @@ import { CHALLENGE_CELLS, TREASURE_CELLS, TREASURE_CARDS, DEFAULT_CHALLENGES, SN
 import { generateSingleChallenge } from "../gemini";
 import { getGameState } from "./core";
 import { generateRandomPortals } from "./utils";
+import { calculateMovementOutcome } from "./movement";
 
 export async function startGame(roomId: string) {
   await update(ref(db, `rooms/${roomId}`), { status: "playing" });
@@ -45,12 +46,14 @@ export async function rollDice(roomId: string, playerId: string) {
   }
 
   const currentPos = gameState.players[playerId].position || 1;
-  let newPosition = currentPos + roll;
-  if (newPosition > 100) newPosition = 100 - (newPosition - 100);
+  const currentPortals = gameState.portals || SNAKES_LADDERS;
 
-  // Check cell types at destination
-  const isChallenge = CHALLENGE_CELLS.has(newPosition);
-  const isTreasure = TREASURE_CELLS.has(newPosition);
+  const moveResult = calculateMovementOutcome(currentPos, roll, currentPortals, player);
+  const landingSpot = moveResult.portal ? moveResult.portal.from : moveResult.finalPosition;
+
+  // Check cell types at destination (landing spot)
+  const isChallenge = CHALLENGE_CELLS.has(landingSpot);
+  const isTreasure = TREASURE_CELLS.has(landingSpot);
   let challengePromise: Promise<{ text: string, penalty: { type: 'steps' | 'skip_turn', value: number } }> | null = null;
 
   if (isChallenge) {
@@ -58,61 +61,29 @@ export async function rollDice(roomId: string, playerId: string) {
           ...gameState,
           players: {
               ...gameState.players,
-              [playerId]: { ...gameState.players[playerId], position: newPosition }
+              [playerId]: { ...gameState.players[playerId], position: landingSpot }
           }
       };
       const theme = gameState.aiConfig?.theme || "";
       challengePromise = generateSingleChallenge(futureState, playerId, theme);
   }
 
-  // Determine portal effects
-  const currentPortals = gameState.portals || SNAKES_LADDERS;
-  const hasPortal = !!currentPortals[newPosition];
-  let destination = hasPortal ? currentPortals[newPosition] : newPosition;
-
-  // Check shield: if snake, block it
-  let shieldBlocked = false;
-  if (hasPortal && destination < newPosition && player.hasShield) {
-    shieldBlocked = true;
-  }
-
-  // Ninja Logic: 50% chance to dodge snake
-  let ninjaDodged = false;
-  if (hasPortal && destination < newPosition && player.role === 'ninja' && !shieldBlocked) {
-    if (Math.random() < 0.5) {
-      ninjaDodged = true;
-    }
-  }
-
   // Wait for dice animation
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
   const updates: Record<string, unknown> = {};
-  let logs = [...(gameState.logs || [])];
+  const logs = [...(gameState.logs || []), ...moveResult.logs];
 
-  if (hasPortal && !shieldBlocked && !ninjaDodged) {
-    // Builder Logic: +2 steps on ladder
-    if (destination > newPosition && player.role === 'builder') {
-      const originalDest = destination;
-      destination = Math.min(100, destination + 2);
-      if (destination > originalDest) {
-        logs.push(`🏗️ ${player.name} (Builder) memperpanjang tangga!`);
-      }
-    }
-
-    updates[`rooms/${roomId}/portalFrom`] = newPosition;
-    updates[`rooms/${roomId}/portalTo`] = destination;
-    updates[`rooms/${roomId}/portalType`] = destination > newPosition ? "ladder" : "snake";
-    newPosition = destination;
+  if (moveResult.portal) {
+    updates[`rooms/${roomId}/portalFrom`] = moveResult.portal.from;
+    updates[`rooms/${roomId}/portalTo`] = moveResult.portal.to;
+    updates[`rooms/${roomId}/portalType`] = moveResult.portal.type;
   } else {
     updates[`rooms/${roomId}/portalFrom`] = null;
     updates[`rooms/${roomId}/portalTo`] = null;
     updates[`rooms/${roomId}/portalType`] = null;
-    if (shieldBlocked) {
+    if (moveResult.shieldUsed) {
       updates[`rooms/${roomId}/players/${playerId}/hasShield`] = null;
-      logs.push(`🛡️ ${player.name} memblok ular dengan Perisai!`);
-    } else if (ninjaDodged) {
-      logs.push(`🥷 ${player.name} (Ninja) menghindari ular dengan lincah!`);
     }
   }
 
@@ -121,7 +92,7 @@ export async function rollDice(roomId: string, playerId: string) {
   updates[`rooms/${roomId}/logs`] = logs;
 
   // Check for winner
-  if (newPosition === 100) {
+  if (moveResult.finalPosition === 100) {
     updates[`rooms/${roomId}/winner`] = playerId;
     updates[`rooms/${roomId}/status`] = "finished";
     updates[`rooms/${roomId}/currentChallenge`] = null;
@@ -129,9 +100,9 @@ export async function rollDice(roomId: string, playerId: string) {
     updates[`rooms/${roomId}/lastRoll`] = roll;
     updates[`rooms/${roomId}/players/${playerId}/position`] = 100;
     await update(ref(db), updates);
-  } else if (isChallenge && !hasPortal) {
+  } else if (isChallenge && !moveResult.portal) {
     // Challenge cell
-    updates[`rooms/${roomId}/players/${playerId}/position`] = newPosition;
+    updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
     updates[`rooms/${roomId}/lastRoll`] = roll;
     updates[`rooms/${roomId}/isRolling`] = false;
     updates[`rooms/${roomId}/currentChallenge`] = "...GENERATING...";
@@ -158,7 +129,7 @@ export async function rollDice(roomId: string, playerId: string) {
         [`rooms/${roomId}/currentPenalty`]: { type: 'steps', value: 3 }
       });
     }
-  } else if (isTreasure && !hasPortal) {
+  } else if (isTreasure && !moveResult.portal) {
     // Treasure cell — give a random card!
     const randomCard = TREASURE_CARDS[Math.floor(Math.random() * TREASURE_CARDS.length)];
 
@@ -166,7 +137,7 @@ export async function rollDice(roomId: string, playerId: string) {
     const existingCards = player.cards || [];
     const updatedCards = [...existingCards, randomCard];
 
-    updates[`rooms/${roomId}/players/${playerId}/position`] = newPosition;
+    updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
     updates[`rooms/${roomId}/lastRoll`] = roll;
     updates[`rooms/${roomId}/isRolling`] = false;
     updates[`rooms/${roomId}/players/${playerId}/cards`] = updatedCards;
@@ -175,7 +146,7 @@ export async function rollDice(roomId: string, playerId: string) {
     await update(ref(db), updates);
   } else {
     // Normal move
-    updates[`rooms/${roomId}/players/${playerId}/position`] = newPosition;
+    updates[`rooms/${roomId}/players/${playerId}/position`] = moveResult.finalPosition;
     updates[`rooms/${roomId}/lastRoll`] = roll;
     updates[`rooms/${roomId}/isRolling`] = false;
 
@@ -210,7 +181,7 @@ export async function resetGame(roomId: string) {
 
   if (gameState.players) {
     Object.keys(gameState.players).forEach(pid => {
-      updates[`rooms/${roomId}/players/${pid}/position`] = 0;
+      updates[`rooms/${roomId}/players/${pid}/position`] = 1;
       updates[`rooms/${roomId}/players/${pid}/cards`] = null;
       updates[`rooms/${roomId}/players/${pid}/hasShield`] = null;
       updates[`rooms/${roomId}/players/${pid}/doubleDice`] = null;

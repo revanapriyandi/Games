@@ -35,7 +35,7 @@ export function Board({ players, displayPositions, thinkingPlayerId, activePorta
             setAnimatedPositions(displayPositions);
         } else {
              const positions: Record<string, number> = {};
-             players.forEach(p => { positions[p.id] = p.position || 0; });
+             players.forEach(p => { positions[p.id] = p.position || 1; });
              setAnimatedPositions(positions);
         }
     }, [displayPositions, players]);
