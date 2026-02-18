@@ -12,7 +12,7 @@ export function GameHeader({ roomId, onLeave, aiConfig }: GameHeaderProps) {
     return (
         <>
             <div className="fixed top-3 left-4 md:left-8 z-[60] flex items-center gap-3">
-                 <Button
+                <Button
                     variant="destructive"
                     size="sm"
                     onClick={onLeave}
@@ -22,7 +22,14 @@ export function GameHeader({ roomId, onLeave, aiConfig }: GameHeaderProps) {
                     KELUAR
                 </Button>
 
-                <div className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 select-all">
+                <div
+                    onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/?room=${roomId}`);
+                        // Optional: Show toast or feedback
+                    }}
+                    className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 cursor-pointer hover:bg-black/60 transition-colors"
+                    title="Click to copy invite link"
+                >
                     ROOM: <span className="text-white font-bold">{roomId}</span>
                 </div>
             </div>

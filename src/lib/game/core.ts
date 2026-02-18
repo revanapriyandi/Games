@@ -114,15 +114,19 @@ export async function updateStakes(roomId: string, stakes: string) {
   await update(ref(db), updates);
 }
 
+export async function updateAIConfig(roomId: string, aiConfig: AIConfig) {
+  await update(ref(db, `rooms/${roomId}/aiConfig`), aiConfig);
+}
+
 export async function acceptStakes(roomId: string, playerId: string) {
-    // using runTransaction to safely update the list
-    await runTransaction(ref(db, `rooms/${roomId}/stakesAcceptedBy`), (currentList: string[] | null) => {
-        const list = currentList || [];
-        if (!list.includes(playerId)) {
-            return [...list, playerId];
-        }
-        return list;
-    });
+  // using runTransaction to safely update the list
+  await runTransaction(ref(db, `rooms/${roomId}/stakesAcceptedBy`), (currentList: string[] | null) => {
+    const list = currentList || [];
+    if (!list.includes(playerId)) {
+      return [...list, playerId];
+    }
+    return list;
+  });
 }
 
 export async function kickPlayer(roomId: string, playerId: string) {

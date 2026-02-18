@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { playCard, clearCardEffect, updateStakes, acceptStakes, updateRules } from "../lib/game";
+import { updateStakes, acceptStakes, updateRules, updateAIConfig } from "../lib/game";
 import { playCardUseSound, playWorldEventSound, playDiceResultSound } from "../lib/sounds";
 import { WorldEventVisuals } from "./game/WorldEventVisuals";
 import { Board } from "./Board";
@@ -85,7 +85,8 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
     const [editStakesValue, setEditStakesValue] = useState("");
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(roomId);
+        const link = `${window.location.origin}/?room=${roomId}`;
+        navigator.clipboard.writeText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -218,8 +219,16 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
             {/* Theme badge converted to inside settings */}\n
 
             {/* Room ID badge */}
-            <div className="fixed top-3 right-3 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 select-all">
-                ROOM: <span className="text-white font-bold">{roomId}</span>
+            <div
+                onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/?room=${roomId}`);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                }}
+                className="fixed top-3 right-3 z-20 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-xs font-mono text-gray-400 cursor-pointer hover:bg-black/60 transition-colors"
+                title="Click to copy invite link"
+            >
+                {copied ? <span className="text-emerald-400 font-bold">LINK COPIED!</span> : <>ROOM: <span className="text-white font-bold">{roomId}</span></>}
             </div>
 
             {/* Stakes Badge (In-Game) */}

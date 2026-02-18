@@ -9,8 +9,15 @@ const GameRoom = lazy(() => import('./components/GameRoom').then(module => ({ de
 function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [gameSession, setGameSession] = useState<{ roomId: string; playerId: string } | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const roomParam = params.get("room");
     const saved = localStorage.getItem("snake_ladder_session");
-    return saved ? JSON.parse(saved) : null;
+    const session = saved ? JSON.parse(saved) : null;
+
+    if (roomParam && session && session.roomId !== roomParam) {
+      return null;
+    }
+    return session;
   });
 
   // Preload components while splash screen is showing

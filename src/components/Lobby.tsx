@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { createRoom, joinRoom } from "../lib/game";
@@ -23,6 +23,16 @@ export function Lobby({ onJoin }: LobbyProps) {
     const [roomCode, setRoomCode] = useState("");
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+
+    // Check for room code in URL
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const roomParam = params.get("room");
+        if (roomParam) {
+            setRoomCode(roomParam);
+            setActiveTab('join');
+        }
+    }, []);
 
     // AI Theme state
     const [selectedPreset, setSelectedPreset] = useState("");

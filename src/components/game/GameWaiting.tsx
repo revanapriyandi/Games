@@ -47,14 +47,15 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             <div className="space-y-1">
                                 <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                    Room Access Code
+                                    Room Access Link
                                 </h2>
-                                <p className="text-gray-500 text-xs">Share this code with your friends to join.</p>
+                                <p className="text-gray-500 text-xs">Click to copy invite link</p>
                             </div>
 
                             <button
                                 onClick={onCopy}
                                 className="relative overflow-hidden flex items-center gap-4 bg-black/40 hover:bg-black/60 border border-white/10 hover:border-indigo-500/30 rounded-xl px-5 py-3 transition-all group/btn active:scale-95 w-full md:w-auto"
+                                title="Copy Invite Link"
                             >
                                 <span className="text-3xl font-mono font-bold text-white tracking-[0.15em] relative z-10">
                                     {roomId}
@@ -63,10 +64,13 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                                 <div className="text-gray-400 group-hover/btn:text-white transition-colors">
                                     {copied ? (
                                         <div className="flex flex-col items-center gap-1 text-emerald-400">
-                                            <span className="text-[10px] font-bold">COPIED</span>
+                                            <span className="text-[10px] font-bold">LINK COPIED</span>
                                         </div>
                                     ) : (
-                                        <Copy size={20} />
+                                        <div className="flex flex-col items-center gap-1">
+                                            <Copy size={20} />
+                                            <span className="text-[10px] font-bold">COPY LINK</span>
+                                        </div>
                                     )}
                                 </div>
                             </button>
@@ -96,8 +100,8 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                                     transition={{ delay: idx * 0.1 }}
                                     key={p.id}
                                     className={`relative flex items-center gap-4 p-3 rounded-xl border transition-all group ${p.id === playerId
-                                            ? "bg-indigo-900/20 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
-                                            : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
+                                        ? "bg-indigo-900/20 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                                        : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                                         }`}
                                 >
                                     <div className="relative shrink-0">
@@ -203,8 +207,8 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                                     onClick={() => setIsStakesModalOpen(true)}
                                     size="sm"
                                     className={`w-full font-bold text-xs uppercase tracking-wide ${!iAccepted
-                                            ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 animate-pulse"
-                                            : "bg-white/5 hover:bg-white/10 text-gray-400 border border-white/5"
+                                        ? "bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-900/20 animate-pulse"
+                                        : "bg-white/5 hover:bg-white/10 text-gray-400 border border-white/5"
                                         }`}
                                 >
                                     {!iAccepted ? "Review & Accept" : "View Stakes"}
