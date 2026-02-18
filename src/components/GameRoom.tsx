@@ -142,6 +142,8 @@ export function GameRoom({ roomId, playerId, onLeave }: GameRoomProps) {
                     onAcceptStakes={() => acceptStakes(roomId, playerId)}
                     rules={gameState.rules}
                     onUpdateRules={(rules) => updateRules(roomId, rules)}
+                    aiConfig={gameState.aiConfig}
+                    onUpdateAIConfig={(config) => updateAIConfig(roomId, config)}
                 />
                 <GameChat
                     roomId={roomId}

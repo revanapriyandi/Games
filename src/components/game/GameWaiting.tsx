@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../ui/button";
-import type { Player } from "../../lib/types";
+import type { Player, AIConfig } from "../../lib/types";
 import { kickPlayer, startGame } from "../../lib/game";
 import { getAvatarImage } from "../KnightAvatar";
-import { Copy, User, Crown, AlertTriangle, ShieldAlert, Settings } from "lucide-react";
+import { Copy, User, Crown, AlertTriangle, ShieldAlert, Settings, Sparkles, X, Edit2 } from "lucide-react";
+import { THEME_PRESETS } from "../../lib/constants";
+import { Input } from "../ui/input";
 import type { HouseRules } from "../../lib/types";
 
 interface GameWaitingProps {
@@ -21,13 +23,59 @@ interface GameWaitingProps {
     onAcceptStakes?: () => void;
     rules?: HouseRules;
     onUpdateRules?: (rules: HouseRules) => void;
+    aiConfig?: AIConfig;
+    onUpdateAIConfig?: (config: AIConfig) => void;
 }
 
-export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules }: GameWaitingProps) {
+export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules, aiConfig, onUpdateAIConfig }: GameWaitingProps) {
     const [isStakesModalOpen, setIsStakesModalOpen] = useState(false);
+    const [isThemeModalOpen, setIsThemeModalOpen] = useState(false);
+    const [customTheme, setCustomTheme] = useState("");
+
+    // Find matching preset or default to custom if theme exists but not in presets
+    const currentThemeValue = aiConfig?.theme
+        ? (THEME_PRESETS.find(p => p.label.includes(aiConfig.theme) || aiConfig.theme.includes(p.value))?.value || 'custom')
+        : "";
+
+    const [selectedPreset, setSelectedPreset] = useState(currentThemeValue);
+
     const hasStakes = !!stakes && stakes.trim().length > 0;
     const allAccepted = !hasStakes || (stakesAcceptedBy && players.every(p => stakesAcceptedBy.includes(p.id)));
     const iAccepted = !hasStakes || (stakesAcceptedBy && stakesAcceptedBy.includes(playerId));
+
+    const handleThemeUpdate = (val: string) => {
+        if (!onUpdateAIConfig) return;
+
+        let themeToSave = val;
+        // If selecting a preset, use the label or value appropriately
+        const preset = THEME_PRESETS.find(p => p.value === val);
+        if (preset && val !== 'custom') {
+            themeToSave = preset.label; // Or handle based on how backend expects it.
+            // Actually, looks like Lobby uses: activeTheme = selectedPreset === "custom" ? customTheme : selectedPreset
+            // But here we want the readable name usually.
+            // Let's stick to what Lobby does or simplify. Lobby does: 
+            // const activeTheme = selectedPreset === "custom" ? customTheme.trim() : selectedPreset;
+            // Wait, looking at Lobby.tsx line 70:
+            /*
+            if (activeTheme) {
+                const content = await generateGameContent(activeTheme);
+                aiConfig = { theme: activeTheme, ...content };
+            }
+            */
+            // So if selectedPreset is likely "horror spooky...", that string is saved as theme.
+            onUpdateAIConfig({ theme: themeToSave });
+        } else if (val === 'custom') {
+            // For custom, allow modal to handle the specific input save
+            // We'll handle custom save in the modal "PILIH" button
+        }
+    };
+
+    const saveCustomTheme = () => {
+        if (onUpdateAIConfig && customTheme.trim()) {
+            onUpdateAIConfig({ theme: customTheme.trim() });
+            setIsThemeModalOpen(false);
+        }
+    };
 
     return (
         <motion.div
@@ -178,6 +226,39 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                             Game Configuration
                         </h3>
 
+                        {/* Theme Section */}
+                        <div className="space-y-3 p-4 rounded-xl border border-purple-500/20 bg-purple-900/10">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Sparkles size={12} /> Adventure Theme
+                                </label>
+                                {isHost && <span className="text-[9px] text-gray-500">Host Only</span>}
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white flex items-center gap-2 min-h-[40px]">
+                                    {aiConfig?.theme ? (
+                                        <>
+                                            <span className="text-lg">✨</span>
+                                            <span className="font-medium truncate">{aiConfig.theme}</span>
+                                        </>
+                                    ) : (
+                                        <span className="text-gray-500 italic">No specific theme selected</span>
+                                    )}
+                                </div>
+                                {isHost && (
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        className="h-10 w-10 border-white/10 hover:bg-white/5"
+                                        onClick={() => setIsThemeModalOpen(true)}
+                                    >
+                                        <Edit2 size={14} />
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Stakes Section */}
                         <div className="space-y-3 bg-white/[0.03] p-4 rounded-xl border border-white/5">
                             <div className="flex items-center justify-between">
@@ -304,6 +385,91 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
                     </div>
                 </div>
             </div>
+
+            {/* Theme Selection Modal */}
+            <AnimatePresence>
+                {isThemeModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-slate-900 border border-white/10 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden"
+                        >
+                            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-black/20">
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <Sparkles className="text-purple-500" size={18} />
+                                    Pilih Tema Petualangan
+                                </h3>
+                                <button
+                                    onClick={() => setIsThemeModalOpen(false)}
+                                    className="p-2 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="p-4 overflow-y-auto space-y-4 custom-scrollbar">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {THEME_PRESETS.map((t) => (
+                                        <button
+                                            key={t.value}
+                                            onClick={() => {
+                                                setSelectedPreset(t.value);
+                                                handleThemeUpdate(t.value);
+                                                if (t.value !== 'custom') setIsThemeModalOpen(false);
+                                            }}
+                                            className={`relative p-3 rounded-xl border text-left transition-all group ${selectedPreset === t.value
+                                                ? "bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]"
+                                                : "bg-black/20 border-white/10 hover:bg-white/5 hover:border-white/20"
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-2xl filter drop-shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                                    {t.label.split(' ')[0]}
+                                                </span>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-xs font-bold ${selectedPreset === t.value ? "text-white" : "text-gray-300"}`}>
+                                                        {t.label.split(' ').slice(1).join(' ')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {selectedPreset === t.value && (
+                                                <div className="absolute top-3 right-3 w-2 h-2 bg-purple-500 rounded-full shadow-[0_0_5px_currentColor]" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {selectedPreset === "custom" && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        className="pt-2"
+                                    >
+                                        <label className="text-[10px] uppercase font-bold text-purple-400 mb-1 block tracking-wider">Tulis Tema Kamu Sendiri</label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                value={customTheme}
+                                                onChange={(e) => setCustomTheme(e.target.value)}
+                                                placeholder="Contoh: Petualangan Bajak Laut Luar Angkasa..."
+                                                className="bg-black/40 border-purple-500/30 focus:border-purple-500 text-white placeholder:text-gray-600 text-sm h-11"
+                                                autoFocus
+                                            />
+                                            <Button
+                                                onClick={saveCustomTheme}
+                                                className="bg-purple-600 hover:bg-purple-700 text-white font-bold h-11 px-6 header-btn"
+                                            >
+                                                PILIH
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Stakes Modal */}
             <AnimatePresence>
