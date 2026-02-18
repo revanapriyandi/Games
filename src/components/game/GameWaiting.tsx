@@ -81,135 +81,147 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-5xl mx-auto p-4 md:p-8"
+            className="w-full max-w-6xl mx-auto p-4 md:p-8 flex flex-col gap-6"
         >
-            <div className="grid lg:grid-cols-12 gap-6 items-start">
+            {/* Header: Room Info */}
+            <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-indigo-500/5 animate-gradient-xy transition-opacity group-hover:opacity-100 opacity-50" />
 
-                {/* Left Column: Room Info & Players */}
-                <div className="lg:col-span-7 space-y-6">
-                    {/* Room Code Card */}
-                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 transition-opacity group-hover:opacity-100 opacity-50" />
-
-                        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="space-y-1">
-                                <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
-                                    Room Access Link
-                                </h2>
-                                <p className="text-gray-500 text-xs">Click to copy invite link</p>
-                            </div>
-
-                            <button
-                                onClick={onCopy}
-                                className="relative overflow-hidden flex items-center gap-4 bg-black/40 hover:bg-black/60 border border-white/10 hover:border-indigo-500/30 rounded-xl px-5 py-3 transition-all group/btn active:scale-95 w-full md:w-auto"
-                                title="Copy Invite Link"
-                            >
-                                <span className="text-3xl font-mono font-bold text-white tracking-[0.15em] relative z-10">
-                                    {roomId}
-                                </span>
-                                <div className="h-full w-px bg-white/10 mx-2" />
-                                <div className="text-gray-400 group-hover/btn:text-white transition-colors">
-                                    {copied ? (
-                                        <div className="flex flex-col items-center gap-1 text-emerald-400">
-                                            <span className="text-[10px] font-bold">LINK COPIED</span>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <Copy size={20} />
-                                            <span className="text-[10px] font-bold">COPY LINK</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </button>
-                        </div>
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="text-center md:text-left space-y-1">
+                        <h2 className="text-gray-400 text-xs font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]" />
+                            ADVENTURE LOBBY
+                        </h2>
+                        <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">
+                            Waiting for Heroes
+                        </h1>
+                        <p className="text-gray-500 text-sm">Prepare your party before entering the dungeon.</p>
                     </div>
 
-                    {/* Players List Card */}
-                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl min-h-[300px]">
-                        <div className="flex items-center justify-between mb-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                        <div className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3">
+                            <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">ROOM CODE</span>
+                            <span className="text-xl font-mono font-bold text-white tracking-widest">{roomId}</span>
+                        </div>
+                        <Button
+                            onClick={onCopy}
+                            className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                        >
+                            {copied ? (
+                                <span className="text-emerald-400 font-bold flex items-center gap-2">
+                                    Link Copied! <span className="text-lg">✅</span>
+                                </span>
+                            ) : (
+                                <span className="flex items-center gap-2">
+                                    <Copy size={16} /> Copy Invite Link
+                                </span>
+                            )}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid lg:grid-cols-12 gap-6 items-start">
+
+                {/* Left Column: Player Roster (Merged) */}
+                <div className="lg:col-span-7 space-y-6">
+                    <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl min-h-[400px] flex flex-col">
+                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
                             <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
                                 <User size={16} className="text-indigo-400" />
-                                Adventurers Party <span className="text-gray-500 text-xs ml-1">({players.length}/4)</span>
+                                Party Roster <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs text-white">{players.length}/4</span>
                             </h3>
                             {players.length < 2 && (
-                                <div className="px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full flex items-center gap-2 text-[10px] text-red-400 font-bold animate-pulse">
+                                <div className="text-[10px] text-red-400 font-bold animate-pulse flex items-center gap-1.5">
                                     <AlertTriangle size={12} />
-                                    MINIMUM 2 PLAYERS
+                                    NEED 2+ PLAYERS
                                 </div>
                             )}
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 flex-1">
                             {players.map((p, idx) => (
                                 <motion.div
-                                    initial={{ y: 10, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
                                     transition={{ delay: idx * 0.1 }}
                                     key={p.id}
-                                    className={`relative flex items-center gap-4 p-3 rounded-xl border transition-all group ${p.id === playerId
-                                        ? "bg-indigo-900/20 border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
+                                    className={`relative flex items-center gap-4 p-4 rounded-xl border transition-all group ${p.id === playerId
+                                        ? "bg-gradient-to-r from-indigo-900/20 to-transparent border-indigo-500/30 shadow-[0_0_20px_rgba(99,102,241,0.1)]"
                                         : "bg-white/[0.03] border-white/5 hover:bg-white/[0.06]"
                                         }`}
                                 >
+                                    {/* Avatar & Badge */}
                                     <div className="relative shrink-0">
-                                        <div className={`w-12 h-12 rounded-lg bg-black/40 flex items-center justify-center p-1 border ${p.id === playerId ? 'border-indigo-500/30' : 'border-white/5'}`}>
+                                        <div className={`w-14 h-14 rounded-xl bg-black/40 flex items-center justify-center p-1.5 border-2 ${p.id === playerId ? 'border-indigo-500/50' : 'border-white/10'}`}>
                                             <img
                                                 src={p.customAvatarUrl || getAvatarImage(p.avatar, idx)}
                                                 alt={p.name}
-                                                className="w-full h-full object-contain filter drop-shadow-sm transform group-hover:scale-110 transition-transform duration-300"
+                                                className="w-full h-full object-contain filter drop-shadow-md transform group-hover:scale-110 transition-transform duration-300"
                                             />
                                         </div>
                                         {p.isHost && (
-                                            <div className="absolute -top-2 -right-2 bg-yellow-500 text-black p-1 rounded-full shadow-lg shadow-yellow-500/20 border border-yellow-300" title="Party Leader">
-                                                <Crown size={10} fill="currentColor" />
+                                            <div className="absolute -top-2 -right-2 bg-gradient-to-br from-yellow-300 to-yellow-600 text-black p-1.5 rounded-full shadow-lg border border-yellow-200" title="Party Leader">
+                                                <Crown size={12} fill="currentColor" />
                                             </div>
                                         )}
                                     </div>
 
+                                    {/* Player Info */}
                                     <div className="flex flex-col flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`text-sm font-bold truncate ${p.id === playerId ? "text-indigo-300" : "text-gray-200"}`}>
-                                                {p.name}
-                                            </span>
-                                            {p.id === playerId && (
-                                                <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20 font-bold uppercase">You</span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            {/* Status Indicators */}
-                                            {hasStakes && (
-                                                <div className={`text-[10px] font-medium flex items-center gap-1 ${stakesAcceptedBy?.includes(p.id) ? "text-green-400" : "text-gray-500"}`}>
-                                                    {stakesAcceptedBy?.includes(p.id) ? (
-                                                        <><span>Ready</span> <ShieldAlert size={10} /></>
-                                                    ) : (
-                                                        <span>Reviewing...</span>
-                                                    )}
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-base font-bold truncate ${p.id === playerId ? "text-indigo-300" : "text-gray-200"}`}>
+                                                    {p.name}
+                                                </span>
+                                                {p.id === playerId && (
+                                                    <span className="text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/20 font-bold uppercase tracking-wider">You</span>
+                                                )}
+                                            </div>
+
+                                            {/* Status Badge */}
+                                            {hasStakes ? (
+                                                <div className={`text-[10px] font-bold px-2 py-1 rounded border uppercase tracking-wider ${stakesAcceptedBy?.includes(p.id)
+                                                    ? "bg-green-500/10 border-green-500/20 text-green-400"
+                                                    : "bg-yellow-500/10 border-yellow-500/20 text-yellow-500/50"}`}>
+                                                    {stakesAcceptedBy?.includes(p.id) ? "Ready" : "Reviewing"}
+                                                </div>
+                                            ) : (
+                                                <div className="text-[10px] font-bold px-2 py-1 rounded border bg-white/5 border-white/10 text-gray-500 uppercase tracking-wider">
+                                                    Waiting
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
 
-                                    {/* Kick Button (Host) */}
-                                    {isHost && p.id !== playerId && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (confirm(`Kick ${p.name}?`)) kickPlayer(roomId, p.id);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all absolute right-2 bg-black/60 backdrop-blur-sm"
-                                            title="Kick Player"
-                                        >
-                                            <ShieldAlert size={14} />
-                                        </button>
-                                    )}
+                                        {/* Host Controls */}
+                                        {isHost && p.id !== playerId && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm(`Kick ${p.name}?`)) kickPlayer(roomId, p.id);
+                                                    }}
+                                                    className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+                                                    title={`Kick ${p.name}`}
+                                                >
+                                                    <ShieldAlert size={16} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </motion.div>
                             ))}
 
                             {/* Empty Slots */}
                             {Array.from({ length: Math.max(0, 4 - players.length) }).map((_, i) => (
-                                <div key={`empty-${i}`} className="flex items-center justify-center p-3 h-[74px] rounded-xl border border-white/5 bg-black/20 border-dashed text-white/10 text-xs font-medium group hover:bg-white/[0.02] transition-colors">
-                                    <span className="group-hover:text-white/20 transition-colors">Waiting for hero...</span>
+                                <div key={`empty-${i}`} className="flex items-center justify-center p-4 h-24 rounded-xl border border-white/5 bg-black/20 border-dashed text-white/10 text-xs font-medium group hover:bg-white/[0.02] transition-colors">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <User size={14} className="opacity-20" />
+                                        </div>
+                                        <span className="group-hover:text-white/20 transition-colors">Waiting for hero...</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -221,9 +233,9 @@ export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy
 
                     {/* Game Rules / Settings */}
                     <div className="bg-[#0a0a0b]/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 shadow-2xl space-y-6">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 pb-4 border-b border-white/5">
                             <Settings size={14} />
-                            Game Configuration
+                            Mission Parameters
                         </h3>
 
                         {/* Theme Section */}
