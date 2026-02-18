@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { updateStakes, acceptStakes, updateRules, updateAIConfig } from "../lib/game";
+import { playCard, clearCardEffect, updateStakes, acceptStakes, updateRules, updateAIConfig } from "../lib/game";
 import { playCardUseSound, playWorldEventSound, playDiceResultSound } from "../lib/sounds";
 import { WorldEventVisuals } from "./game/WorldEventVisuals";
 import { Board } from "./Board";

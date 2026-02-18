@@ -24,7 +24,7 @@ interface GameWaitingProps {
     rules?: HouseRules;
     onUpdateRules?: (rules: HouseRules) => void;
     aiConfig?: AIConfig;
-    onUpdateAIConfig?: (config: AIConfig) => void;
+    onUpdateAIConfig?: (config: Partial<AIConfig>) => void;
 }
 
 export function GameWaiting({ roomId, players, playerId, isHost, onLeave, onCopy, copied, stakes, onChangeStakes, stakesAcceptedBy, onAcceptStakes, rules, onUpdateRules, aiConfig, onUpdateAIConfig }: GameWaitingProps) {

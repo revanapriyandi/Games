@@ -114,7 +114,7 @@ export async function updateStakes(roomId: string, stakes: string) {
   await update(ref(db), updates);
 }
 
-export async function updateAIConfig(roomId: string, aiConfig: AIConfig) {
+export async function updateAIConfig(roomId: string, aiConfig: Partial<AIConfig>) {
   await update(ref(db, `rooms/${roomId}/aiConfig`), aiConfig);
 }
 
